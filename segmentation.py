@@ -59,6 +59,12 @@ class segmentation:
         for row in range(self.segments.shape[0]):
             for col in range(self.segments.shape[1]):
                 self.point_list_list[self.segments[row, col]].append((col, row))
+        self.tmp_point_list_list = []
+        for point_list in self.point_list_list:
+            if len(point_list) < self.super_pixel_size ** 2 * 0.5:
+                continue
+            self.tmp_point_list_list.append(point_list)
+        self.point_list_list = self.tmp_point_list_list
 
     def get_point_list_list(self):
         return copy.deepcopy(self.point_list_list)
@@ -67,8 +73,8 @@ class segmentation:
         # get bounding rect of each segment
         self.rect_list = []
         for point_list in self.point_list_list:
-            if len(point_list) < self.super_pixel_size ** 2 * 0.6:
-                continue
+            # if len(point_list) < self.super_pixel_size ** 2 * 0.5:
+            # continue
             x = min([point[0] for point in point_list])
             y = min([point[1] for point in point_list])
             width = max([point[0] for point in point_list]) - x
@@ -112,9 +118,10 @@ class segmentation:
             self.mark_image = skseg.mark_boundaries(self.image, self.segments)
             return copy.deepcopy(self.mark_image)
 
-    def show_mark_image(self):
+    def show_mark_image(self, wait=True):
         cv2.imshow('mark_image', self.get_mark_image())
-        cv2.waitKey()
+        if wait:
+            cv2.waitKey()
 
     def compute_boundary_vec_list(self):
         self.boundary_vec_list = []
@@ -145,17 +152,26 @@ class segmentation:
     def get_classify_vec_list(self):
         return copy.deepcopy(self.classify_vec_list)
 
-    def compute_classify_target_list(self, classifier):
+    def set_classify_target_list(self, classifier):
         pass
 
     def label_classify_target_list(self, mark=False):
         self.classify_target_list = []
-        if mark:
-            tmp_image = self.get_mark_image()
-        else:
-            tmp_image = self.get_image()
-        for rect in self.rect_list:
-            rect_img = np.copy(tmp_image[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2]])
+        for i in range(len(self.rect_list)):
+            if mark:
+                tmp_image = np.copy(self.get_mark_image())
+            else:
+                tmp_image = np.copy(self.get_image())
+            for point in self.point_list_list[i]:
+                tmp_image[point[1], point[0]] = tmp_image[point[1], point[0]] * 0.9 + np.array([0, 0, 255]) * 0.1
+            print self.rect_list[i]
+            # rect_img = np.copy(tmp_image[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2]])
+            rect_img = np.copy(
+                tmp_image[
+                self.rect_list[i][1]:self.rect_list[i][1] + self.rect_list[i][3],
+                self.rect_list[i][0]:self.rect_list[i][0] + self.rect_list[i][2]
+                ]
+            )
             cv2.imshow('rect_image', rect_img)
             while 1:
                 try:
@@ -167,48 +183,3 @@ class segmentation:
 
     def get_classify_target_list(self):
         return copy.deepcopy(self.classify_target_list)
-
-
-        # def test():
-        # img = cv2.imread('train_pic/img.jpg')
-        #     segments = skseg.slic(img, img.shape[0] * img.shape[1] / 50 / 50,40 )
-        #     mark_img=skseg.mark_boundaries(img, segments)
-        #     cv2.imshow('mark_img',mark_img)
-        #     cv2.waitKey()
-        #     value_set = set()
-        #     for row in segments:
-        #         for pixel in row:
-        #             value_set.add(pixel)
-        #     segment_list = [np.zeros((img.shape[0], img.shape[1]), np.uint8) for i in range(len(value_set))]
-        #     for row in range(segments.shape[0]):
-        #         for col in range(segments.shape[1]):
-        #             segment_list[segments[row, col]][row, col] = 255
-        #
-        #     for segment in segment_list:
-        #         contour_list = cv2.findContours(segment, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        #         contour_max = \
-        #             [contour for contour in contour_list[1] if contour.shape[0] == max([tmp.shape[0] for tmp in contour_list[1]])][
-        #                 0]
-        #         # tmp_img=np.zeros((img.shape[0], img.shape[1]), np.uint8)
-        #         # for point in contour_max:
-        #         # loc=point[0]
-        #         #     tmp_img[loc[1],loc[0]]=255
-        #         rect = cv2.boundingRect(contour_max)
-        #         if rect[2]*rect[3]<50*50:
-        #             continue
-        #         boundary_vec=[0,0,0,0]
-        #         if rect[0]<=1:
-        #             boundary_vec[0]=1
-        #         if rect[1]<=1:
-        #             boundary_vec[1]=1
-        #         if rect[0]+rect[2]>=img.shape[1]-2:
-        #             boundary_vec[2]=1
-        #         if rect[1]+rect[3]>=img.shape[0]-2:
-        #             boundary_vec[3]=1
-        #         print boundary_vec
-        #         hog_img = np.copy(img[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2]])
-        #         show_img=np.copy(mark_img[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2]])
-        #         cv2.imshow('hog_img', show_img)
-        #         # cv2.waitKey()
-        #         hog.hog(hog_img, 8, 2, 4, 4, 9)
-        #         target=raw_input()
