@@ -6,7 +6,7 @@ import copy
 
 
 class segmentation:
-    def __init__(self, image, super_pixel_size=50, compactness=40,
+    def __init__(self, image, super_pixel_size, compactness=80,
                  hog_cell_size=8, hog_block_size=2, hog_row_num=4, hog_col_num=4, hog_angle_bin=9):
         # copy paras into class
         self.image = np.copy(image)
@@ -21,10 +21,17 @@ class segmentation:
         # compute info
         self.compute_segments()
         self.compute_point_list_list()
+        self.compute_segment_image_list()
         self.compute_rect_list()
         self.compute_hog_list()
         self.compute_boundary_vec_list()
+        self.compute_segment_vec_list()
         self.compute_classify_vec_list()
+        # print len(self.point_list_list)
+        # print len(self.rect_list)
+        # print len(self.hog_list)
+        # print len(self.boundary_vec_list)
+        # print len(self.classify_vec_list)
 
 
     def get_image(self):
@@ -35,11 +42,17 @@ class segmentation:
         cv2.waitKey()
 
     def compute_segments(self):
+        tmp_b,tmp_g,tmp_r=cv2.split(self.image)
+        tmp_b=cv2.equalizeHist(tmp_b)
+        tmp_g=cv2.equalizeHist(tmp_g)
+        tmp_r=cv2.equalizeHist(tmp_r)
+        tmp_image=cv2.merge([tmp_b,tmp_g,tmp_r])
         # compute super pixel segments
         self.segments = skseg.slic(
-            self.image,
+            tmp_image,
             self.image.shape[0] * self.image.shape[1] / self.super_pixel_size / self.super_pixel_size,
-            self.compactness
+            self.compactness,
+            enforce_connectivity=True
         )
 
     def get_segments(self):
@@ -59,15 +72,24 @@ class segmentation:
         for row in range(self.segments.shape[0]):
             for col in range(self.segments.shape[1]):
                 self.point_list_list[self.segments[row, col]].append((col, row))
-        self.tmp_point_list_list = []
-        for point_list in self.point_list_list:
-            if len(point_list) < self.super_pixel_size ** 2 * 0.5:
-                continue
-            self.tmp_point_list_list.append(point_list)
-        self.point_list_list = self.tmp_point_list_list
+                # self.tmp_point_list_list = []
+                # for point_list in self.point_list_list:
+                # if len(point_list) < self.super_pixel_size ** 2 * 0.5:
+                # continue
+                #     self.tmp_point_list_list.append(point_list)
+                # self.point_list_list = self.tmp_point_list_list
 
     def get_point_list_list(self):
         return copy.deepcopy(self.point_list_list)
+
+    def compute_segment_image_list(self):
+        self.segment_image_list = [np.zeros(self.segments.shape, np.uint8) for i in range(len(self.point_list_list))]
+        for i in range(len(self.point_list_list)):
+            for point in self.point_list_list[i]:
+                self.segment_image_list[i][point[1], point[0]] = 255
+                # for image in self.segment_image_list:
+                # cv2.imshow('segment_image',image)
+                #     cv2.waitKey()
 
     def compute_rect_list(self):
         # get bounding rect of each segment
@@ -82,6 +104,8 @@ class segmentation:
             # if width*height<super_pixel_size**2:
             # continue
             self.rect_list.append((x, y, width, height))
+            # for rect in self.rect_list:
+            # print rect
 
     def get_rect_list(self):
         return copy.deepcopy(self.rect_list)
@@ -135,18 +159,40 @@ class segmentation:
                 boundary_vec[2] = 1
             if rect[1] + rect[3] >= self.segments.shape[0] - 2:
                 boundary_vec[3] = 1
+            # print boundary_vec
             self.boundary_vec_list.append(boundary_vec)
 
     def get_boundary_vec_list(self):
         return copy.deepcopy(self.boundary_vec_list)
 
+    def compute_segment_vec_list(self):
+        self.segment_vec_list = []
+        if len(self.rect_list) != len(self.point_list_list):
+            raise ValueError('len(self.rect_list) != len(self.point_list_list) !')
+        for i in range(len(self.rect_list)):
+            segment_vec = np.zeros((4, 4), np.float64)
+            for point in self.point_list_list[i]:
+                col = int((point[0] - self.rect_list[i][0]) / (self.rect_list[i][2] / 4 + 1))
+                row = int((point[1] - self.rect_list[i][1]) / (self.rect_list[i][3] / 4 + 1))
+                segment_vec[row, col] += 1
+            segment_vec /= len(self.point_list_list[i])
+            segment_vec=segment_vec.reshape((16))
+            # cv2.imshow('segment',self.segment_image_list[i])
+            # print segment_vec
+            # cv2.waitKey()
+            # print list(segment_vec)
+            self.segment_vec_list.append(list(segment_vec))
+
+    def get_segment_vec_list(self):
+        return copy.deepcopy(self.segment_vec_list)
+
     def compute_classify_vec_list(self):
-        if len(self.hog_list) != len(self.boundary_vec_list):
-            raise ValueError('len(self.hog_list)!=len(self.boundary_vec_list) !')
+        if not len(self.hog_list) == len(self.boundary_vec_list) == len(self.segment_vec_list):
+            raise ValueError('not len(self.hog_list) == len(self.boundary_vec_list) == len(self.segment_vec_list) !')
         self.classify_vec_list = []
         for i in range(len(self.hog_list)):
             self.classify_vec_list.append(
-                self.boundary_vec_list[i] + self.hog_list[i]
+                self.boundary_vec_list[i] + self.segment_vec_list[i] + self.hog_list[i]
             )
 
     def get_classify_vec_list(self):
@@ -163,16 +209,15 @@ class segmentation:
             else:
                 tmp_image = np.copy(self.get_image())
             for point in self.point_list_list[i]:
-                tmp_image[point[1], point[0]] = tmp_image[point[1], point[0]] * 0.9 + np.array([0, 0, 255]) * 0.1
+                tmp_image[point[1], point[0]] = tmp_image[point[1], point[0]] * 0.95 + np.array([0, 0, 255]) * 0.05
             print self.rect_list[i]
-            # rect_img = np.copy(tmp_image[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2]])
-            rect_img = np.copy(
-                tmp_image[
-                self.rect_list[i][1]:self.rect_list[i][1] + self.rect_list[i][3],
-                self.rect_list[i][0]:self.rect_list[i][0] + self.rect_list[i][2]
-                ]
+            cv2.rectangle(
+                tmp_image,
+                (self.rect_list[i][0], self.rect_list[i][1]),
+                (self.rect_list[i][0] + self.rect_list[i][2], self.rect_list[i][1] + self.rect_list[i][3]),
+                (0, 255, 0)
             )
-            cv2.imshow('rect_image', rect_img)
+            cv2.imshow('rect_image', tmp_image)
             while 1:
                 try:
                     target = int(raw_input())
@@ -180,6 +225,28 @@ class segmentation:
                 except:
                     pass
             self.classify_target_list.append(target)
+            cv2.destroyWindow('rect_image')
 
     def get_classify_target_list(self):
         return copy.deepcopy(self.classify_target_list)
+
+    def compute_foreground_mask(self):
+        self.fore_mask = np.zeros(self.image.shape, np.uint8)
+        if len(self.classify_target_list) != len(self.point_list_list):
+            raise ValueError('len(self.classify_target_list)!=len(self.point_list_list) !')
+        for i in range(len(self.classify_target_list)):
+            if self.classify_target_list[i]:
+                for point in self.point_list_list[i]:
+                    if len(self.fore_mask.shape) < 3:
+                        self.fore_mask[point[1], point[0]] = 1
+                    else:
+                        self.fore_mask[point[1], point[0]] = (1, 1, 1)
+
+    def get_foreground_mask(self):
+        return copy.deepcopy(self.fore_mask)
+
+    def compute_foreground_image(self):
+        self.fore_image = self.image * self.fore_mask
+
+    def get_foreground_image(self):
+        return copy.deepcopy(self.fore_image)

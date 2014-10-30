@@ -2,17 +2,21 @@ import cv2
 import numpy as np
 
 
-def hog(image, cell_size, block_size, row_num, col_num, angle_bin):
-    if len(image.shape) == 3:
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def hog(img, cell_size, block_size, row_num, col_num, angle_bin):
+    image = np.copy(img)
     image = cv2.medianBlur(image, 3)
-    image = cv2.equalizeHist(image)
     # cv2.imshow('image',image)
     grad_x = cv2.Sobel(image, cv2.CV_32F, 1, 0)
-    grad_x = cv2.resize(grad_x, (col_num * cell_size, row_num * cell_size))
     grad_y = cv2.Sobel(image, cv2.CV_32F, 0, 1)
+    if len(image.shape) == 3:
+        grad_x = np.max(grad_x, 2)
+        grad_y = np.max(grad_y, 2)
+        # print grad_x.shape,grad_y.shape
+
+    grad_x = cv2.resize(grad_x, (col_num * cell_size, row_num * cell_size))
     grad_y = cv2.resize(grad_y, (col_num * cell_size, row_num * cell_size))
     norm_vec = np.sqrt(grad_x ** 2 + grad_y ** 2)
+    # norm_vec = grad_x ** 2 + grad_y ** 2
     # cv2.imshow('norm_vec',norm_vec/np.max(norm_vec))
     # cv2.waitKey()
     norm_angle = np.arctan(grad_y / (grad_x + 10 ** -10))
