@@ -42,11 +42,11 @@ class segmentation:
         cv2.waitKey()
 
     def compute_segments(self):
-        tmp_b,tmp_g,tmp_r=cv2.split(self.image)
-        tmp_b=cv2.equalizeHist(tmp_b)
-        tmp_g=cv2.equalizeHist(tmp_g)
-        tmp_r=cv2.equalizeHist(tmp_r)
-        tmp_image=cv2.merge([tmp_b,tmp_g,tmp_r])
+        tmp_b, tmp_g, tmp_r = cv2.split(self.image)
+        tmp_b = cv2.equalizeHist(tmp_b)
+        tmp_g = cv2.equalizeHist(tmp_g)
+        tmp_r = cv2.equalizeHist(tmp_r)
+        tmp_image = cv2.merge([tmp_b, tmp_g, tmp_r])
         # compute super pixel segments
         self.segments = skseg.slic(
             tmp_image,
@@ -76,7 +76,7 @@ class segmentation:
                 # for point_list in self.point_list_list:
                 # if len(point_list) < self.super_pixel_size ** 2 * 0.5:
                 # continue
-                #     self.tmp_point_list_list.append(point_list)
+                # self.tmp_point_list_list.append(point_list)
                 # self.point_list_list = self.tmp_point_list_list
 
     def get_point_list_list(self):
@@ -89,7 +89,7 @@ class segmentation:
                 self.segment_image_list[i][point[1], point[0]] = 255
                 # for image in self.segment_image_list:
                 # cv2.imshow('segment_image',image)
-                #     cv2.waitKey()
+                # cv2.waitKey()
 
     def compute_rect_list(self):
         # get bounding rect of each segment
@@ -123,14 +123,15 @@ class segmentation:
     def compute_hog_list(self):
         # compute hog of each segment
         self.hog_list = []
+        self.hog_image_list = []
         for rect in self.rect_list:
             hog_img = np.copy(self.image[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2]])
-            # cv2.imshow('hog_image',hog_img)
-            # cv2.waitKey()
-            self.hog_list.append(
-                hog.hog(hog_img, self.hog_cell_size, self.hog_block_size,
-                        self.hog_row_num, self.hog_col_num, self.hog_angle_bin)
+            vec, image = hog.hog(
+                hog_img, self.hog_cell_size, self.hog_block_size,
+                self.hog_row_num, self.hog_col_num, self.hog_angle_bin
             )
+            self.hog_list.append(vec)
+            self.hog_image_list.append(image)
 
     def get_hog_list(self):
         return copy.deepcopy(self.hog_list)
@@ -176,7 +177,7 @@ class segmentation:
                 row = int((point[1] - self.rect_list[i][1]) / (self.rect_list[i][3] / 4 + 1))
                 segment_vec[row, col] += 1
             segment_vec /= len(self.point_list_list[i])
-            segment_vec=segment_vec.reshape((16))
+            segment_vec = segment_vec.reshape((16))
             # cv2.imshow('segment',self.segment_image_list[i])
             # print segment_vec
             # cv2.waitKey()
@@ -192,8 +193,10 @@ class segmentation:
         self.classify_vec_list = []
         for i in range(len(self.hog_list)):
             self.classify_vec_list.append(
-                self.boundary_vec_list[i] + self.segment_vec_list[i] + self.hog_list[i]
+                list(self.rect_list[i]) + self.boundary_vec_list[i] + self.segment_vec_list[i] + self.hog_list[i]
             )
+        # for vec in self.classify_vec_list:
+        #     print vec
 
     def get_classify_vec_list(self):
         return copy.deepcopy(self.classify_vec_list)
@@ -217,7 +220,12 @@ class segmentation:
                 (self.rect_list[i][0] + self.rect_list[i][2], self.rect_list[i][1] + self.rect_list[i][3]),
                 (0, 255, 0)
             )
+            cv2.namedWindow('rect_image')
+            cv2.moveWindow('rect_image', 50, 70)
             cv2.imshow('rect_image', tmp_image)
+            cv2.namedWindow('hog')
+            cv2.moveWindow('hog', 50, 0)
+            cv2.imshow('hog', self.hog_image_list[i])
             while 1:
                 try:
                     target = int(raw_input())
@@ -225,7 +233,7 @@ class segmentation:
                 except:
                     pass
             self.classify_target_list.append(target)
-            cv2.destroyWindow('rect_image')
+            cv2.destroyAllWindows()
 
     def get_classify_target_list(self):
         return copy.deepcopy(self.classify_target_list)

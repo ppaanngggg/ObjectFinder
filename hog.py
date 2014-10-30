@@ -46,4 +46,4 @@ def hog(img, cell_size, block_size, row_num, col_num, angle_bin):
             block_vec = block_vec / np.sqrt(np.sum(block_vec ** 2) + 10 ** -10)
             hog_vec.append(block_vec)
     hog_vec = list(np.hstack(hog_vec))
-    return hog_vec
+    return hog_vec,np.sqrt(norm_vec)/np.max(np.sqrt(norm_vec))
