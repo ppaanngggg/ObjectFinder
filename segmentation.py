@@ -201,8 +201,8 @@ class segmentation:
     def get_classify_vec_list(self):
         return copy.deepcopy(self.classify_vec_list)
 
-    def set_classify_target_list(self, classifier):
-        pass
+    def set_classify_target_list(self, target_list):
+        self.classify_target_list=target_list
 
     def label_classify_target_list(self, mark=False):
         self.classify_target_list = []
@@ -239,22 +239,24 @@ class segmentation:
         return copy.deepcopy(self.classify_target_list)
 
     def compute_foreground_mask(self):
-        self.fore_mask = np.zeros(self.image.shape, np.uint8)
+        self.fore_mask = np.zeros(self.image.shape[0:2], np.uint8)
         if len(self.classify_target_list) != len(self.point_list_list):
             raise ValueError('len(self.classify_target_list)!=len(self.point_list_list) !')
         for i in range(len(self.classify_target_list)):
             if self.classify_target_list[i]:
                 for point in self.point_list_list[i]:
-                    if len(self.fore_mask.shape) < 3:
-                        self.fore_mask[point[1], point[0]] = 1
-                    else:
-                        self.fore_mask[point[1], point[0]] = (1, 1, 1)
+                    self.fore_mask[point[1], point[0]] = 1
 
     def get_foreground_mask(self):
         return copy.deepcopy(self.fore_mask)
 
     def compute_foreground_image(self):
-        self.fore_image = self.image * self.fore_mask
+        self.fore_image=np.zeros(self.image.shape,np.uint8)
+        for row in range(self.fore_mask.shape[0]):
+            for col in range(self.fore_mask.shape[1]):
+                if self.fore_mask[row,col]:
+                    self.fore_image[row,col]=self.image[row,col]
+        # self.fore_image = cv2.copyTo(self.image , self.fore_mask)
 
     def get_foreground_image(self):
         return copy.deepcopy(self.fore_image)
