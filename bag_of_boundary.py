@@ -52,5 +52,5 @@ def k_means_bag_of_boundary():
 
 
 if __name__ == '__main__':
-    # store_bag_of_boundary()
+    store_bag_of_boundary()
     k_means_bag_of_boundary()

@@ -56,5 +56,5 @@ def k_means_bag_of_visual_word():
     )
 
 if __name__=='__main__':
-    # store_bag_of_visual_word()
+    store_bag_of_visual_word()
     k_means_bag_of_visual_word()

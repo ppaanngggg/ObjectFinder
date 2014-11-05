@@ -35,7 +35,7 @@ def k_means_one_layer(data, key, n_clusters, parent, db_name, coll_name):
     for m in mean:
         one = coll.find_one({key: list(m)})
         id_list.append(one['_id'])
-    cluster_list=[[] for i in range(n_clusters)]
+    cluster_list = [[] for i in range(n_clusters)]
     # print id_list
     for index in range(len(predict)):
         data[index]['parent'] = id_list[predict[index]]
@@ -43,55 +43,62 @@ def k_means_one_layer(data, key, n_clusters, parent, db_name, coll_name):
     # print cluster_list
     return cluster_list
 
+
 def k_means_multi_layer(data, key, n_clusters, parent, db_name, coll_name, num):
-    if len(data)<num*n_clusters:
-        client=MongoClient()
-        db=client[db_name]
-        coll=db[coll_name]
+    if len(data) < num * n_clusters:
+        client = MongoClient()
+        db = client[db_name]
+        coll = db[coll_name]
         for d in data:
             coll.insert(d)
         return
-    cluster_list=k_means_one_layer(data,key,n_clusters,parent,db_name,coll_name)
+    cluster_list = k_means_one_layer(data, key, n_clusters, parent, db_name, coll_name)
     for cluster in cluster_list:
-        k_means_multi_layer(cluster,key,n_clusters,cluster[0]['parent'],db_name,coll_name,num)
+        k_means_multi_layer(cluster, key, n_clusters, cluster[0]['parent'], db_name, coll_name, num)
 
-def print_k_means(db_name,coll_name,key,parent='none',tab_num=0):
-    client=MongoClient()
-    db=client[db_name]
-    coll=db[coll_name]
-    for one in coll.find({'parent':parent}):
-        print '\t'*tab_num,one[key]
-        print_k_means(db_name,coll_name,key,one['_id'],tab_num+1)
 
-def find_k_means(vec,db_name,coll_name,key):
-    client=MongoClient()
-    db=client[db_name]
-    coll=db[coll_name]
-    parent='none'
-    result=[]
+def print_k_means(db_name, coll_name, key, parent='none', tab_num=0):
+    client = MongoClient()
+    db = client[db_name]
+    coll = db[coll_name]
+    for one in coll.find({'parent': parent}):
+        print '\t' * tab_num, one[key]
+        print_k_means(db_name, coll_name, key, one['_id'], tab_num + 1)
+
+
+def find_k_means(vec, db_name, coll_name, key):
+    client = MongoClient()
+    db = client[db_name]
+    coll = db[coll_name]
+    parent = 'none'
+    result = []
+    best_result=None
     while True:
         data = []
-        for one in coll.find({'parent':parent}):
+        for one in coll.find({'parent': parent}):
             data.append(one)
         if not data:
             break
-        result=data
-        X=[np.array(d[key]) for d in data]
-        min_index=0
-        min_distance=np.sum((np.array(vec)-X[0])**2)
-        for index in range(1,len(X)):
-            distance=np.sum((np.array(vec)-X[index])**2)
-            if distance<min_distance:
-                min_index=index
-                min_distance=distance
-        parent=data[min_index]['_id']
+        result = data
+        X = [np.array(d[key]) for d in data]
+        min_index = 0
+        min_distance = np.sum((np.array(vec) - X[0]) ** 2)
+        for index in range(1, len(X)):
+            distance = np.sum((np.array(vec) - X[index]) ** 2)
+            if distance < min_distance:
+                min_index = index
+                min_distance = distance
+        best_result=data[min_index]
+        parent = data[min_index]['_id']
 
-    return result
+    return result,best_result
+
 
 def test():
-    k_means_multi_layer(find_data('test', 'test'),'des',2,'none','test','test_2',2)
-    print_k_means('test','test_2','des')
-    print find_k_means([9.8,8.5,10.6],'test','test_2','des')
+    k_means_multi_layer(find_data('test', 'test'), 'des', 2, 'none', 'test', 'test_2', 2)
+    print_k_means('test', 'test_2', 'des')
+    print find_k_means([9.8, 8.5, 10.6], 'test', 'test_2', 'des')
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     test()
