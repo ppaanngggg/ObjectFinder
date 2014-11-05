@@ -49,7 +49,7 @@ for result in [best_result]:
 print '**** ORB ****'
 result_visual_word_dict = {}
 
-orb = cv2.ORB_create(nfeatures=100)
+orb = cv2.ORB_create()
 kp_list = orb.detect(seg_s.get_image(), seg_s.get_foreground_mask())
 kp_list, des_list = orb.compute(seg_s.get_image(), kp_list)
 for des in des_list:
