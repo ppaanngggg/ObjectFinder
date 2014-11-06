@@ -198,14 +198,14 @@ class ImageProcess:
             self.classify_vec_list.append(
                 list(self.rect_list[i]) + self.boundary_vec_list[i] + self.segment_vec_list[i] + self.hog_list[i]
             )
-        # for vec in self.classify_vec_list:
-        #     print vec
+            # for vec in self.classify_vec_list:
+            # print vec
 
     def get_classify_vec_list(self):
         return copy.deepcopy(self.classify_vec_list)
 
     def set_classify_target_list(self, target_list):
-        self.classify_target_list=target_list
+        self.classify_target_list = target_list
 
     def label_classify_target_list(self, mark=False):
         self.classify_target_list = []
@@ -254,12 +254,12 @@ class ImageProcess:
         return copy.deepcopy(self.fore_mask)
 
     def compute_foreground_image(self):
-        self.fore_image=np.zeros(self.image.shape,np.uint8)
+        self.fore_image = np.zeros(self.image.shape, np.uint8)
         for row in range(self.fore_mask.shape[0]):
             for col in range(self.fore_mask.shape[1]):
-                if self.fore_mask[row,col]:
-                    self.fore_image[row,col]=self.image[row,col]
-        # self.fore_image = cv2.copyTo(self.image , self.fore_mask)
+                if self.fore_mask[row, col]:
+                    self.fore_image[row, col] = self.image[row, col]
+                    # self.fore_image = cv2.copyTo(self.image , self.fore_mask)
 
     def get_foreground_image(self):
         return copy.deepcopy(self.fore_image)
@@ -282,10 +282,9 @@ class ImageProcess:
         orb = cv2.ORB_create()
         kp_list = orb.detect(self.get_image(), self.get_foreground_mask())
         kp_list, self.ORB_list = orb.compute(self.get_image(), kp_list)
-        tmp=cv2.drawKeypoints(self.get_foreground_image(),kp_list,None)
-        cv2.imshow('tmp',tmp)
-        cv2.waitKey()
-
+        # tmp = cv2.drawKeypoints(self.get_foreground_image(), kp_list, None)
+        # cv2.imshow('tmp', tmp)
+        # cv2.waitKey()
 
     def get_ORB_list(self):
         return copy.deepcopy(self.ORB_list)
@@ -293,8 +292,9 @@ class ImageProcess:
 
 def test():
     import train
-    img=cv2.imread('train_pic/cloth/1.jpg')
-    img_proc=ImageProcess(img,70)
+
+    img = cv2.imread('train_pic/cloth/1.jpg')
+    img_proc = ImageProcess(img, 70)
     clf_fore = train.train_sample('fore')
     img_proc.set_classify_target_list(clf_fore.predict(img_proc.get_classify_vec_list()))
     img_proc.compute_foreground_mask()
@@ -304,5 +304,5 @@ def test():
     img_proc.compute_ORB_list()
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     test()

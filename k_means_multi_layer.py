@@ -25,7 +25,7 @@ def k_means_one_layer(data, key, n_clusters, parent, db_name, coll_name):
         mean[predict[index]] += X[index]
         count[predict[index]] += 1
     for index in range(len(mean)):
-        mean[index] = mean[index] / count[index]
+        mean[index] /= float(count[index])
     client = MongoClient()
     db = client[db_name]
     coll = db[coll_name]
