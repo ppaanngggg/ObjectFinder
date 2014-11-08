@@ -49,7 +49,7 @@ def store_by_kind(paths, kind, clf_fore, clf_shape):
             .store_color_hist() \
             .store_ORB_list() \
             .store_hog_list() \
-            .write_fore_image()
+            .write_fore_image('train_pic_fore')
 
 
 def main():
@@ -73,6 +73,10 @@ def main():
     t_color_hist = threading.Thread(target=build_k_means_color_hist)
     t_ORB = threading.Thread(target=build_k_means_ORB_list)
     t_hog = threading.Thread(target=build_k_means_hog_list)
+
+    t_color_hist.start()
+    t_ORB.start()
+    t_hog.start()
 
     t_color_hist.join()
     t_ORB.join()

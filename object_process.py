@@ -12,6 +12,7 @@ class ObjectProcess:
         self.name = str_list[2]
 
         self.image = cv2.imread(path)
+        self.image = cv2.resize(self.image,(400,400))
 
         self.image_proc_s = ImageProcess(self.image, 70)
         self.image_proc_s.set_classify_target_list(
@@ -70,22 +71,30 @@ class ObjectProcess:
 
     def store_ORB_list(self):
         coll = self.db.ORB_list
-        for ORB in self.get_ORB_list():
-            coll.insert({
-                    'vec': [int(num) for num in ORB],
-                    'kind': self.kind,
-                    'name': self.name
-            })
+        ORB_list=self.get_ORB_list()
+        try:
+            for ORB in ORB_list:
+                coll.insert({
+                        'vec': [int(num) for num in ORB],
+                        'kind': self.kind,
+                        'name': self.name
+                })
+        except:
+            pass
         return self
 
     def store_hog_list(self):
         coll = self.db.hog_list
-        for hog in self.get_hog_list():
-            coll.insert({
-                    'vec': hog,
-                    'kind': self.kind,
-                    'name': self.name
-            })
+        hog_list=self.get_hog_list()
+        try:
+            for hog in hog_list:
+                coll.insert({
+                        'vec': hog,
+                        'kind': self.kind,
+                        'name': self.name
+                })
+        except:
+            pass
         return self
 
     def write_fore_image(self,img_base):
@@ -99,12 +108,7 @@ class ObjectProcess:
 def test():
     clf_fore = train.train_sample('fore')
     clf_shape = train.train_sample('shape')
-    obj = ObjectProcess('train_pic/cloth/2.jpg', clf_fore, clf_shape)
-    print obj.get_color_hist()
-    for ORB in obj.get_ORB_list():
-        print ORB
-    for hog in obj.get_hog_list():
-        print hog
+    obj = ObjectProcess('train_pic/cup/69.jpg', clf_fore, clf_shape)
 
     obj.store_color_hist()
     obj.store_ORB_list()

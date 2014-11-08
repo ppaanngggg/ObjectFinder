@@ -293,7 +293,7 @@ class ImageProcess:
 def test():
     import train
 
-    img = cv2.imread('train_pic/cloth/1.jpg')
+    img = cv2.imread('train_pic/cup/69.jpg')
     img_proc = ImageProcess(img, 70)
     clf_fore = train.train_sample('fore')
     img_proc.set_classify_target_list(clf_fore.predict(img_proc.get_classify_vec_list()))
