@@ -4,6 +4,7 @@ import copy
 from pymongo import MongoClient
 import train
 import threading
+import numpy as np
 
 
 class ObjectProcess:
@@ -29,10 +30,10 @@ class ObjectProcess:
         thread_l.join()
 
         self.hog_list = []
-        hog_list = \
-            self.image_proc_m.get_hog_list() + self.image_proc_l.get_hog_list()
-        target_list = \
-            list(self.image_proc_m.get_classify_target_list()) + list(self.image_proc_l.get_classify_target_list())
+        hog_list = self.image_proc_m.get_hog_list() + \
+                   self.image_proc_l.get_hog_list()
+        target_list = list(self.image_proc_m.get_classify_target_list()) + \
+                      list(self.image_proc_l.get_classify_target_list())
         for index in range(len(hog_list)):
             if target_list[index]:
                 self.hog_list.append(hog_list[index])
@@ -67,6 +68,33 @@ class ObjectProcess:
                 self.image_proc_l.get_classify_vec_list()
             )
         )
+
+    def get_image(self):
+        return copy.deepcopy(self.image)
+
+    def get_fore(self):
+        return copy.deepcopy(self.image_proc_s.get_foreground_image())
+
+    def get_seg_image_list(self):
+        return [
+            np.array(self.image_proc_s.get_mark_image() * 255, dtype=np.uint8),
+            np.array(self.image_proc_m.get_mark_image() * 255, dtype=np.uint8),
+            np.array(self.image_proc_l.get_mark_image() * 255, dtype=np.uint8)
+        ]
+
+    def get_pos_hog_image_list(self):
+        try:
+            return copy.deepcopy(self.hog_image_list)
+        except:
+            self.hog_image_list = []
+            tmp_list = self.image_proc_m.get_hog_image_list() + \
+                       self.image_proc_l.get_hog_image_list()
+            target_list = list(self.image_proc_m.get_classify_target_list()) + \
+                          list(self.image_proc_l.get_classify_target_list())
+            for i in range(len(target_list)):
+                if target_list[i]:
+                    self.hog_image_list.append(tmp_list[i])
+            return copy.deepcopy(self.hog_image_list)
 
     def get_color_hist(self):
         return copy.deepcopy(self.image_proc_s.get_color_hist())

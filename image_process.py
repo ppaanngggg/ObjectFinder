@@ -220,7 +220,10 @@ class ImageProcess:
             cv2.rectangle(
                 tmp_image,
                 (self.rect_list[i][0], self.rect_list[i][1]),
-                (self.rect_list[i][0] + self.rect_list[i][2], self.rect_list[i][1] + self.rect_list[i][3]),
+                (
+                    self.rect_list[i][0] + self.rect_list[i][2],
+                    self.rect_list[i][1] + self.rect_list[i][3]
+                ),
                 (0, 255, 0)
             )
             cv2.namedWindow('rect_image')
@@ -291,18 +294,11 @@ class ImageProcess:
 
 
 def test():
-    import train
-
-    img = cv2.imread('train_pic/cup/69.jpg')
+    img = cv2.imread('test_pic/2.jpg')
     img_proc = ImageProcess(img, 70)
-    clf_fore = train.train_sample('fore')
-    img_proc.set_classify_target_list(clf_fore.predict(img_proc.get_classify_vec_list()))
-    img_proc.compute_foreground_mask()
-    img_proc.compute_foreground_image()
-    img_proc.compute_color_hist()
-    print img_proc.get_color_hist()
-    img_proc.compute_ORB_list()
-
+    print np.max(img_proc.get_mark_image())
+    # cv2.imshow('mark',img_proc.get_mark_image())
+    # cv2.waitKey()
 
 if __name__ == '__main__':
     test()
