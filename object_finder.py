@@ -37,6 +37,7 @@ class ImageView(QtGui.QDialog):
                 if cv_image.dtype != np.uint8:
                     cv_image = np.array(cv_image * 255, dtype=np.uint8)
                     cv_image = cv2.cvtColor(cv_image, cv2.COLOR_GRAY2BGR)
+            print cv_image
             cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
             height, width, bytes_per_component = cv_image.shape
             bytes_per_line = bytes_per_component * width
@@ -87,13 +88,16 @@ class ObjectFinder(QtGui.QWidget):
         self.btm_shape = QtGui.QPushButton('Shape')
         self.btm_shape.setEnabled(False)
         self.btm_shape.clicked.connect(self.btm_shape_clicked)
-
+        self.btm_ORB = QtGui.QPushButton('ORB')
+        self.btm_ORB.setEnabled(False)
+        self.btm_ORB.clicked.connect(self.btm_ORB_clicked)
         self.layout = QtGui.QVBoxLayout()
         self.layout.addWidget(self.btm_read)
         self.layout.addWidget(self.btm_img)
         self.layout.addWidget(self.btm_fore)
         self.layout.addWidget(self.btm_seg)
         self.layout.addWidget(self.btm_shape)
+        self.layout.addWidget(self.btm_ORB)
         self.setLayout(self.layout)
 
     def train_fore(self):
@@ -110,12 +114,14 @@ class ObjectFinder(QtGui.QWidget):
             note = Note('processing...')
             note.show()
             self.object = ObjectProcess(str(path), self.clf_fore, self.clf_shape)
+            self.detect_kind()
+            self.detect_name()
             note.close()
-            print self.object.kind, self.object.name
             self.btm_img.setEnabled(True)
             self.btm_fore.setEnabled(True)
             self.btm_seg.setEnabled(True)
             self.btm_shape.setEnabled(True)
+            self.btm_ORB.setEnabled(True)
 
     def btm_img_clicked(self):
         image_view = ImageView(
@@ -148,6 +154,31 @@ class ObjectFinder(QtGui.QWidget):
             10
         )
         image_view.show()
+
+    def btm_ORB_clicked(self):
+        image_view = ImageView(
+            self, 'ORB',
+            [self.object.image_proc_s.ORB_image],
+            1
+        )
+        image_view.show()
+
+    def detect_kind(self):
+        client = MongoClient()
+        db = client.object_finder
+        coll = db.find_result
+        coll.insert({
+            'name': self.object.name,
+            'fit_color': self.object.get_fit_color_dict(),
+            'best_fit_color': self.object.get_best_fit_color_dict(),
+            'fit_ORB': self.object.get_fit_ORB_dict(),
+            'best_fit_ORB': self.object.get_best_fit_ORB_dict(),
+            'fit_hog': self.object.get_fit_hog_dict(),
+            'best_fit_hog': self.object.get_best_fit_hog_dict()
+        })
+
+    def detect_name(self):
+        pass
 
 
 def main():

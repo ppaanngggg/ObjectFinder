@@ -19,6 +19,7 @@ class ObjectProcess:
 
         self.image = cv2.imread(path)
         self.image = cv2.resize(self.image, (400, 400))
+        self.image = cv2.medianBlur(self.image,3)
 
         thread_s = threading.Thread(target=self.init_image_proc_s())
         thread_m = threading.Thread(target=self.init_image_proc_m())
@@ -152,13 +153,13 @@ class ObjectProcess:
 
     def insert_into_dict(self, fit, arg_dict):
         if fit['kind'] in arg_dict.keys():
-            if fit['name'] in arg_dict[fit['kind']].keys():
-                arg_dict[fit['kind']][fit['name']] += 1
+            if fit['name'][:-4] in arg_dict[fit['kind']].keys():
+                arg_dict[fit['kind']][fit['name'][:-4]] += 1
             else:
-                arg_dict[fit['kind']][fit['name']] = 1
+                arg_dict[fit['kind']][fit['name'][:-4]] = 1
         else:
             arg_dict[fit['kind']] = {}
-            arg_dict[fit['kind']][fit['name']] = 1
+            arg_dict[fit['kind']][fit['name'][:-4]] = 1
 
     def find_k_means_color_hist(self):
         fit_list, best_fit = find_k_means(

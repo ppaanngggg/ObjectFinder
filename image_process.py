@@ -285,7 +285,7 @@ class ImageProcess:
         orb = cv2.ORB_create()
         kp_list = orb.detect(self.get_image(), self.get_foreground_mask())
         kp_list, self.ORB_list = orb.compute(self.get_image(), kp_list)
-        # tmp = cv2.drawKeypoints(self.get_foreground_image(), kp_list, None)
+        self.ORB_image = cv2.drawKeypoints(self.get_foreground_image(), kp_list, None)
         # cv2.imshow('tmp', tmp)
         # cv2.waitKey()
 
