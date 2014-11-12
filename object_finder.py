@@ -2,7 +2,7 @@ import cv2
 import train
 from object_process import ObjectProcess
 import numpy as np
-import k_means_multi_layer
+from k_means_multi_layer import *
 from pymongo import MongoClient
 import threading
 import copy

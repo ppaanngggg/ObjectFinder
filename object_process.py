@@ -5,6 +5,7 @@ from pymongo import MongoClient
 import train
 import threading
 import numpy as np
+from k_means_multi_layer import *
 
 
 class ObjectProcess:
@@ -96,6 +97,7 @@ class ObjectProcess:
                     self.hog_image_list.append(tmp_list[i])
             return copy.deepcopy(self.hog_image_list)
 
+
     def get_color_hist(self):
         return copy.deepcopy(self.image_proc_s.get_color_hist())
 
@@ -148,15 +150,118 @@ class ObjectProcess:
             self.image_proc_s.get_foreground_image()
         )
 
+    def insert_into_dict(self, fit, arg_dict):
+        if fit['kind'] in arg_dict.keys():
+            if fit['name'] in arg_dict[fit['kind']].keys():
+                arg_dict[fit['kind']][fit['name']] += 1
+            else:
+                arg_dict[fit['kind']][fit['name']] = 1
+        else:
+            arg_dict[fit['kind']] = {}
+            arg_dict[fit['kind']][fit['name']] = 1
+
+    def find_k_means_color_hist(self):
+        fit_list, best_fit = find_k_means(
+            self.get_color_hist(),
+            'object_finder',
+            'k_means_color_hist',
+            'vec'
+        )
+        self.fit_color_dict = {}
+        for fit in fit_list:
+            self.insert_into_dict(fit, self.fit_color_dict)
+        self.best_fit_color_dict = {}
+        self.insert_into_dict(best_fit, self.best_fit_color_dict)
+
+    def get_fit_color_dict(self):
+        try:
+            return copy.deepcopy(self.fit_color_dict)
+        except:
+            self.find_k_means_color_hist()
+            return copy.deepcopy(self.fit_color_dict)
+
+    def get_best_fit_color_dict(self):
+        try:
+            return copy.deepcopy(self.best_fit_color_dict)
+        except:
+            self.find_k_means_color_hist()
+            return copy.deepcopy(self.best_fit_color_dict)
+
+    def find_k_means_ORB_list(self):
+        fit_list = []
+        best_fit_list = []
+        print len(self.get_ORB_list())
+        for ORB in self.get_ORB_list():
+            fit, best = find_k_means(
+                ORB,
+                'object_finder',
+                'k_means_ORB_list',
+                'vec'
+            )
+            fit_list += fit
+            best_fit_list.append(best)
+        self.fit_ORB_dict = {}
+        for fit in fit_list:
+            self.insert_into_dict(fit, self.fit_ORB_dict)
+        self.best_fit_ORB_dict = {}
+        for best_fit in best_fit_list:
+            self.insert_into_dict(best_fit, self.best_fit_ORB_dict)
+
+    def get_fit_ORB_dict(self):
+        try:
+            return copy.deepcopy(self.fit_ORB_dict)
+        except:
+            self.find_k_means_ORB_list()
+            return copy.deepcopy(self.fit_ORB_dict)
+
+    def get_best_fit_ORB_dict(self):
+        try:
+            return copy.deepcopy(self.best_fit_ORB_dict)
+        except:
+            self.find_k_means_ORB_list()
+            return copy.deepcopy(self.best_fit_ORB_dict)
+
+    def find_k_means_hog_list(self):
+        fit_list = []
+        best_fit_list = []
+        for hog in self.get_hog_list():
+            fit, best = find_k_means(
+                hog,
+                'object_finder',
+                'k_means_hog_list',
+                'vec'
+            )
+            fit_list += fit
+            best_fit_list.append(best)
+        self.fit_hog_dict = {}
+        for fit in fit_list:
+            self.insert_into_dict(fit, self.fit_hog_dict)
+        self.best_fit_hog_dict = {}
+        for best_fit in best_fit_list:
+            self.insert_into_dict(best_fit, self.best_fit_hog_dict)
+
+    def get_fit_hog_dict(self):
+        try:
+            return copy.deepcopy(self.fit_hog_dict)
+        except:
+            self.find_k_means_hog_list()
+            return copy.deepcopy(self.fit_hog_dict)
+
+    def get_best_fit_hog_dict(self):
+        try:
+            return copy.deepcopy(self.best_fit_hog_dict)
+        except:
+            self.find_k_means_hog_list()
+            return copy.deepcopy(self.best_fit_hog_dict)
+
 
 def test():
     clf_fore = train.train_sample('fore')
     clf_shape = train.train_sample('shape')
-    obj = ObjectProcess('train_pic/cup/69.jpg', clf_fore, clf_shape)
-
-    obj.store_color_hist()
-    obj.store_ORB_list()
-    obj.store_hog_list()
+    obj = ObjectProcess('train_pic/cup/90.jpg', clf_fore, clf_shape)
+    print obj.get_fit_color_dict(), obj.get_best_fit_color_dict()
+    print obj.get_fit_ORB_dict(), obj.get_best_fit_ORB_dict()
+    print obj.get_fit_hog_dict(), obj.get_best_fit_hog_dict()
 
 
 if __name__ == '__main__':
