@@ -10,6 +10,8 @@ class ImageProcess:
                  hog_cell_size=8, hog_block_size=2, hog_row_num=4, hog_col_num=4, hog_angle_bin=9):
         # copy paras into class
         self.image = np.copy(image)
+        # cv2.imshow('img',self.image)
+        # cv2.waitKey()
         self.super_pixel_size = super_pixel_size
         self.compactness = compactness
         self.hog_cell_size = hog_cell_size
@@ -294,11 +296,18 @@ class ImageProcess:
 
 
 def test():
-    img = cv2.imread('test_pic/2.jpg')
-    img_proc = ImageProcess(img, 70)
-    print np.max(img_proc.get_mark_image())
-    # cv2.imshow('mark',img_proc.get_mark_image())
-    # cv2.waitKey()
+    img = cv2.imread('train_pic/cloth/0.jpg')
+    img_proc = ImageProcess(
+        cv2.medianBlur(img,5), 70
+    )
+    img_proc.label_classify_target_list(True)
+    img_proc.image=cv2.bilateralFilter(img,5,50,50)
+    img_proc.compute_foreground_mask()
+    img_proc.compute_foreground_image()
+    img_proc.compute_color_hist()
+    img_proc.compute_ORB_list()
+    cv2.imshow('orb',img_proc.ORB_image)
+    cv2.waitKey()
 
 if __name__ == '__main__':
     test()

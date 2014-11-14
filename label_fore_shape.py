@@ -12,9 +12,11 @@ class Label:
         self.mode = copy.deepcopy(mode)
 
         self.image = cv2.imread(path)
-        self.image = cv2.medianBlur(self.image, 3)
 
-        self.image_proc_s = ImageProcess(self.image, 70)
+        self.image_proc_s = ImageProcess(
+            cv2.medianBlur(self.image,5), 70
+        )
+        self.image=cv2.bilateralFilter(self.image,5,50,50)
         self.image_proc_m = ImageProcess(self.image, 100)
         self.image_proc_l = ImageProcess(self.image, 130)
 
@@ -60,7 +62,7 @@ def label_target():
     train_list = []
     for kind in kind_list:
         path_list = paths.get_file_path_list(kind)
-        for index in range(9, len(path_list), 20):
+        for index in range(0, len(path_list), 20):
             l = Label(path_list[index], 'train')
             print l.kind, l.name
             train_list.append(l)
