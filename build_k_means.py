@@ -75,7 +75,7 @@ def main():
     t_hog = threading.Thread(target=build_k_means_hog_list)
 
     t_color_hist.start()
-    t_ORB.start()
+    # t_ORB.start()
     t_hog.start()
 
     t_color_hist.join()

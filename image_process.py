@@ -272,7 +272,7 @@ class ImageProcess:
     def compute_color_hist(self):
         img_list = cv2.split(self.get_foreground_image())
         hist_list = [
-            cv2.calcHist([img], [0], self.get_foreground_mask(), [16], [0, 256])
+            cv2.calcHist([img], [0], self.get_foreground_mask(), [32], [0, 256])
             for img in img_list
         ]
         self.color_hist = []
@@ -305,9 +305,11 @@ def test():
     img_proc.compute_foreground_mask()
     img_proc.compute_foreground_image()
     img_proc.compute_color_hist()
-    img_proc.compute_ORB_list()
-    cv2.imshow('orb',img_proc.ORB_image)
-    cv2.waitKey()
+    print len(img_proc.get_color_hist())
+    print img_proc.get_color_hist()
+    # img_proc.compute_ORB_list()
+    # cv2.imshow('orb',img_proc.ORB_image)
+    # cv2.waitKey()
 
 if __name__ == '__main__':
     test()

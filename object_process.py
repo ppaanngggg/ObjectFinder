@@ -46,14 +46,14 @@ class ObjectProcess:
 
     def init_image_proc_s(self):
         self.image_proc_s = ImageProcess(
-            cv2.medianBlur(self.image,5), 70
+            cv2.medianBlur(self.image, 5), 70
         )
         self.image_proc_s.set_classify_target_list(
             self.clf_fore.predict(
                 self.image_proc_s.get_classify_vec_list()
             )
         )
-        self.image_proc_s.image=cv2.bilateralFilter(self.image,5,50,50)
+        self.image_proc_s.image = cv2.bilateralFilter(self.image, 5, 50, 50)
         self.image_proc_s.compute_foreground_mask()
         self.image_proc_s.compute_foreground_image()
         self.image_proc_s.compute_color_hist()
@@ -61,7 +61,7 @@ class ObjectProcess:
 
     def init_image_proc_m(self):
         self.image_proc_m = ImageProcess(
-            cv2.bilateralFilter(self.image,5,50,50), 100
+            cv2.bilateralFilter(self.image, 5, 50, 50), 100
         )
         self.image_proc_m.set_classify_target_list(
             self.clf_shape.predict(
@@ -71,7 +71,7 @@ class ObjectProcess:
 
     def init_image_proc_l(self):
         self.image_proc_l = ImageProcess(
-            cv2.bilateralFilter(self.image,5,50,50), 130
+            cv2.bilateralFilter(self.image, 5, 50, 50), 130
         )
         self.image_proc_l.set_classify_target_list(
             self.clf_shape.predict(
@@ -265,10 +265,10 @@ class ObjectProcess:
 
 
 def test():
-    # clf_fore = train.train_sample('fore')
-    # clf_shape = train.train_sample('shape')
-    clf_fore=None
-    clf_shape=None
+    clf_fore = train.train_sample('fore')
+    clf_shape = train.train_sample('shape')
+    # clf_fore=None
+    # clf_shape=None
     obj = ObjectProcess('train_pic/cloth/0.jpg', clf_fore, clf_shape)
     print obj.get_fit_color_dict(), obj.get_best_fit_color_dict()
     print obj.get_fit_ORB_dict(), obj.get_best_fit_ORB_dict()
