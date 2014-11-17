@@ -6,6 +6,7 @@ from random import *
 import numpy as np
 import BPNN
 
+
 def store_train_find_sample():
     clf_fore = train.train_sample('fore')
     clf_shape = train.train_sample('shape')
@@ -41,23 +42,26 @@ def load_train_find_sample():
         train_find_list.append(find)
     return train_find_list
 
+def to_vec(train_find):
+    vec = []
+    for i in ('color', 'best_color', 'ORB', 'best_ORB', 'hog', 'best_hog'):
+        for j in ('cloth', 'cup', 'shore'):
+            try:
+                vec.append(sum(train_find[i][j].values()))
+            except:
+                vec.append(0)
+    for i in range(0, len(vec), 3):
+        s = sum(vec[i:i + 3])
+        for j in range(i, i + 3):
+            vec[j] /= float(s)
+    return vec
 
 def train_arg():
     train_find_list = load_train_find_sample()
     vec_list = []
     target_list = []
     for train_find in train_find_list:
-        vec = []
-        for i in ('color', 'best_color', 'ORB', 'best_ORB', 'hog', 'best_hog'):
-            for j in ('cloth', 'cup', 'shore'):
-                try:
-                    vec.append(sum(train_find[i][j].values()))
-                except:
-                    vec.append(0)
-        for i in range(0, len(vec), 3):
-            s = sum(vec[i:i + 3])
-            for j in range(i, i + 3):
-                vec[j] /= float(s)
+        vec=to_vec(train_find)
         vec_list.append(vec)
         target = []
         for i in ('cloth', 'cup', 'shore'):
@@ -67,16 +71,18 @@ def train_arg():
                 target.append(0)
         target_list.append(target)
 
-    bpnn=BPNN.Bpnn(len(vec_list[0]),[3])
-    sample_list=[]
+    bpnn = BPNN.Bpnn(len(vec_list[0]), [3])
+    sample_list = []
     for i in range(len(vec_list)):
-        sample_list.append([vec_list[i],target_list[i]])
-    bpnn.train(sample_list,0.1)
-    for vec in vec_list:
-        bpnn.compute(vec)
-        print bpnn.output()
+        sample_list.append([vec_list[i], target_list[i]])
+    bpnn.train(sample_list, 0.2)
+    # for vec in vec_list:
+    #     bpnn.compute(vec)
+    #     print bpnn.output()
+    print sum(bpnn.error(sample_list))
+    return bpnn
 
 
 if __name__ == '__main__':
-    # store_train_find_sample()
+    store_train_find_sample()
     train_arg()

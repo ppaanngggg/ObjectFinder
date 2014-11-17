@@ -1,13 +1,14 @@
 import cv2
 import train
+import arg_learn
 from object_process import ObjectProcess
-import numpy as np
 from k_means_multi_layer import *
 from pymongo import MongoClient
 import threading
 import copy
 from PyQt4 import QtGui, QtCore
 import sys
+import pickle
 
 
 class Note(QtGui.QWidget):
@@ -37,7 +38,6 @@ class ImageView(QtGui.QDialog):
                 if cv_image.dtype != np.uint8:
                     cv_image = np.array(cv_image * 255, dtype=np.uint8)
                     cv_image = cv2.cvtColor(cv_image, cv2.COLOR_GRAY2BGR)
-            print cv_image
             cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
             height, width, bytes_per_component = cv_image.shape
             bytes_per_line = bytes_per_component * width
@@ -66,12 +66,21 @@ class ObjectFinder(QtGui.QWidget):
 
         note = Note('training...')
         note.show()
-        thread_fore = threading.Thread(target=self.train_fore())
-        thread_shape = threading.Thread(target=self.train_shape())
-        thread_fore.start()
-        thread_shape.start()
-        thread_fore.join()
-        thread_shape.join()
+
+        # thread_fore = threading.Thread(target=self.train_fore)
+        # thread_shape = threading.Thread(target=self.train_shape)
+        # thread_bpnn = threading.Thread(target=self.train_bpnn)
+        # thread_fore.start()
+        # thread_shape.start()
+        # thread_bpnn.start()
+        # thread_fore.join()
+        # thread_shape.join()
+        # thread_bpnn.join()
+
+        self.read_clf_fore()
+        self.read_clf_shape()
+        self.read_bpnn()
+
         note.close()
 
         self.btm_read = QtGui.QPushButton('Read')
@@ -102,9 +111,36 @@ class ObjectFinder(QtGui.QWidget):
 
     def train_fore(self):
         self.clf_fore = train.train_sample('fore')
+        f = open('cache/clf_fore', 'w')
+        pickle.dump(self.clf_fore, f)
+        f.close()
+
+    def read_clf_fore(self):
+        f = open('cache/clf_fore', 'r')
+        self.clf_fore = pickle.load(f)
+        f.close()
 
     def train_shape(self):
         self.clf_shape = train.train_sample('shape')
+        f = open('cache/clf_shape', 'w')
+        pickle.dump(self.clf_shape, f)
+        f.close()
+
+    def read_clf_shape(self):
+        f = open('cache/clf_shape', 'r')
+        self.clf_shape = pickle.load(f)
+        f.close()
+
+    def train_bpnn(self):
+        self.bpnn = arg_learn.train_arg()
+        f = open('cache/bpnn', 'w')
+        pickle.dump(self.bpnn, f)
+        f.close()
+
+    def read_bpnn(self):
+        f = open('cache/bpnn', 'r')
+        self.bpnn = pickle.load(f)
+        f.close()
 
     def btm_read_clicked(self):
         file_dialog = QtGui.QFileDialog()
@@ -164,21 +200,44 @@ class ObjectFinder(QtGui.QWidget):
         image_view.show()
 
     def detect_kind(self):
-        client = MongoClient()
-        db = client.object_finder
-        coll = db.find_result
-        coll.insert({
-            'name': self.object.name,
-            'fit_color': self.object.get_fit_color_dict(),
-            'best_fit_color': self.object.get_best_fit_color_dict(),
-            'fit_ORB': self.object.get_fit_ORB_dict(),
-            'best_fit_ORB': self.object.get_best_fit_ORB_dict(),
-            'fit_hog': self.object.get_fit_hog_dict(),
-            'best_fit_hog': self.object.get_best_fit_hog_dict()
-        })
+        self.obj_dict = {
+            'color': self.object.get_fit_color_dict(),
+            'best_color': self.object.get_best_fit_color_dict(),
+            'ORB': self.object.get_fit_ORB_dict(),
+            'best_ORB': self.object.get_best_fit_ORB_dict(),
+            'hog': self.object.get_fit_hog_dict(),
+            'best_hog': self.object.get_best_fit_hog_dict()
+        }
+        vec = arg_learn.to_vec(self.obj_dict)
+        self.bpnn.compute(vec)
+        output=self.bpnn.output()
+        kind_table=['cloth','cup','shore']
+        k_max=output[0]
+        index_max=0
+        for index in range(1,len(output)):
+            if output[index]>k_max:
+                k_max=output[index]
+                index_max=index
+        self.kind=kind_table[index_max]
+        print self.kind
+
 
     def detect_name(self):
-        pass
+        name_dict={}
+        for t in ['color','best_color']:
+            try:
+                weight=1
+                if t=='color':
+                    weight=2
+                for key,value in self.obj_dict[t][self.kind].items():
+                    # print key,value
+                    if key in name_dict.keys():
+                        name_dict[key]+=weight*value
+                    else:
+                        name_dict[key]=weight*value
+            except:
+                pass
+        print name_dict
 
 
 def main():

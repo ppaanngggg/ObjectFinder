@@ -22,9 +22,9 @@ class ObjectProcess:
         # cv2.imshow('img',self.image)
         # cv2.waitKey()
 
-        thread_s = threading.Thread(target=self.init_image_proc_s())
-        thread_m = threading.Thread(target=self.init_image_proc_m())
-        thread_l = threading.Thread(target=self.init_image_proc_l())
+        thread_s = threading.Thread(target=self.init_image_proc_s)
+        thread_m = threading.Thread(target=self.init_image_proc_m)
+        thread_l = threading.Thread(target=self.init_image_proc_l)
         thread_s.start()
         thread_m.start()
         thread_l.start()

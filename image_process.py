@@ -270,21 +270,18 @@ class ImageProcess:
         return copy.deepcopy(self.fore_image)
 
     def compute_color_hist(self):
-        img_list = cv2.split(self.get_foreground_image())
-        hist_list = [
-            cv2.calcHist([img], [0], self.get_foreground_mask(), [32], [0, 256])
-            for img in img_list
-        ]
-        self.color_hist = []
-        for h in hist_list:
-            h /= np.sum(h)
-            self.color_hist += [float(num) for num in list(h)]
+        hsv=cv2.cvtColor(self.get_foreground_image(),cv2.COLOR_BGR2HSV)
+        hist=cv2.calcHist([hsv],[0,1],self.get_foreground_mask(),[18,32],[0,180,0,256])
+        hist=hist.reshape((18*32))
+        hist/=np.sum(hist)
+        self.color_hist=[float(num) for num in list(hist)]
+
 
     def get_color_hist(self):
         return copy.deepcopy(self.color_hist)
 
     def compute_ORB_list(self):
-        orb = cv2.ORB_create()
+        orb = cv2.ORB_create(nfeatures=200)
         kp_list = orb.detect(self.get_image(), self.get_foreground_mask())
         kp_list, self.ORB_list = orb.compute(self.get_image(), kp_list)
         self.ORB_image = cv2.drawKeypoints(self.get_foreground_image(), kp_list, None)
@@ -305,11 +302,6 @@ def test():
     img_proc.compute_foreground_mask()
     img_proc.compute_foreground_image()
     img_proc.compute_color_hist()
-    print len(img_proc.get_color_hist())
-    print img_proc.get_color_hist()
-    # img_proc.compute_ORB_list()
-    # cv2.imshow('orb',img_proc.ORB_image)
-    # cv2.waitKey()
 
 if __name__ == '__main__':
     test()
