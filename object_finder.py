@@ -210,34 +210,42 @@ class ObjectFinder(QtGui.QWidget):
         }
         vec = arg_learn.to_vec(self.obj_dict)
         self.bpnn.compute(vec)
-        output=self.bpnn.output()
-        kind_table=['cloth','cup','shore']
-        k_max=output[0]
-        index_max=0
-        for index in range(1,len(output)):
-            if output[index]>k_max:
-                k_max=output[index]
-                index_max=index
-        self.kind=kind_table[index_max]
+        output = self.bpnn.output()
+        kind_table = ['cloth', 'cup', 'shore']
+        k_max = output[0]
+        index_max = 0
+        for index in range(1, len(output)):
+            if output[index] > k_max:
+                k_max = output[index]
+                index_max = index
+        self.kind = kind_table[index_max]
         print self.kind
 
 
     def detect_name(self):
-        name_dict={}
-        for t in ['color','best_color']:
+        name_dict = {}
+        for t in ['color', 'best_color', 'ORB', 'hog', 'best_hog']:
             try:
                 weight=1
-                if t=='color':
+                if t == 'color':
+                    weight = 8
+                elif t=='best_color':
+                    weight = 5
+                elif t=='hog':
+                    weight=3
+                elif t=='best_hog':
                     weight=2
-                for key,value in self.obj_dict[t][self.kind].items():
+                for key, value in self.obj_dict[t][self.kind].items():
                     # print key,value
                     if key in name_dict.keys():
-                        name_dict[key]+=weight*value
+                        name_dict[key] += weight * value
                     else:
-                        name_dict[key]=weight*value
+                        name_dict[key] = weight * value
             except:
                 pass
-        print name_dict
+        import operator
+        sorted_name=sorted(name_dict.items(),key=operator.itemgetter(1),reverse=True)
+        print sorted_name
 
 
 def main():

@@ -2,8 +2,7 @@ from path_process import PathProcess
 from object_process import ObjectProcess
 import train
 from pymongo import MongoClient
-from random import *
-import numpy as np
+import pickle
 import BPNN
 
 
@@ -75,7 +74,7 @@ def train_arg():
     sample_list = []
     for i in range(len(vec_list)):
         sample_list.append([vec_list[i], target_list[i]])
-    bpnn.train(sample_list, 0.2)
+    bpnn.train(sample_list, 0.55)
     # for vec in vec_list:
     #     bpnn.compute(vec)
     #     print bpnn.output()
@@ -84,5 +83,8 @@ def train_arg():
 
 
 if __name__ == '__main__':
-    store_train_find_sample()
-    train_arg()
+    # store_train_find_sample()
+    bpnn=train_arg()
+    f = open('cache/bpnn', 'w')
+    pickle.dump(bpnn, f)
+    f.close()

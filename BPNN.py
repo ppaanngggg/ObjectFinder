@@ -167,7 +167,7 @@ class Bpnn:
                 # print self.output()
                 self.update(example[1], eta,momentum)
             error_now=sum(self.error(example_list))
-            # print error_now
+            print error_now
 
     def debug_input(self):
         '''
