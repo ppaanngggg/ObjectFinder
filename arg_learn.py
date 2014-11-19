@@ -17,7 +17,7 @@ def store_train_find_sample():
     path_proc = PathProcess('train_pic_arg')
     for kind in path_proc.get_kind_list():
         for path in path_proc.get_file_path_list(kind):
-            # print path
+            print path
             obj_proc = ObjectProcess(path, clf_fore, clf_shape)
             coll.insert({
                 'kind': obj_proc.kind,
@@ -70,11 +70,11 @@ def train_arg():
                 target.append(0)
         target_list.append(target)
 
-    bpnn = BPNN.Bpnn(len(vec_list[0]), [3])
+    bpnn = BPNN.Bpnn(len(vec_list[0]), [6,3])
     sample_list = []
     for i in range(len(vec_list)):
         sample_list.append([vec_list[i], target_list[i]])
-    bpnn.train(sample_list, 0.55)
+    bpnn.train(sample_list, 0.005)
     # for vec in vec_list:
     #     bpnn.compute(vec)
     #     print bpnn.output()
@@ -83,7 +83,7 @@ def train_arg():
 
 
 if __name__ == '__main__':
-    # store_train_find_sample()
+    store_train_find_sample()
     bpnn=train_arg()
     f = open('cache/bpnn', 'w')
     pickle.dump(bpnn, f)

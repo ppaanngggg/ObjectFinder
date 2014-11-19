@@ -100,6 +100,9 @@ class ObjectFinder(QtGui.QWidget):
         self.btm_ORB = QtGui.QPushButton('ORB')
         self.btm_ORB.setEnabled(False)
         self.btm_ORB.clicked.connect(self.btm_ORB_clicked)
+        self.btm_result = QtGui.QPushButton('result')
+        self.btm_result.setEnabled(False)
+        self.btm_result.clicked.connect(self.btm_result_clicked)
         self.layout = QtGui.QVBoxLayout()
         self.layout.addWidget(self.btm_read)
         self.layout.addWidget(self.btm_img)
@@ -107,6 +110,7 @@ class ObjectFinder(QtGui.QWidget):
         self.layout.addWidget(self.btm_seg)
         self.layout.addWidget(self.btm_shape)
         self.layout.addWidget(self.btm_ORB)
+        self.layout.addWidget(self.btm_result)
         self.setLayout(self.layout)
 
     def train_fore(self):
@@ -158,6 +162,7 @@ class ObjectFinder(QtGui.QWidget):
             self.btm_seg.setEnabled(True)
             self.btm_shape.setEnabled(True)
             self.btm_ORB.setEnabled(True)
+            self.btm_result.setEnabled(True)
 
     def btm_img_clicked(self):
         image_view = ImageView(
@@ -199,6 +204,14 @@ class ObjectFinder(QtGui.QWidget):
         )
         image_view.show()
 
+    def btm_result_clicked(self):
+        image_view = ImageView(
+            self, 'result',
+            self.find_result_img_list,
+            3
+        )
+        image_view.show()
+
     def detect_kind(self):
         self.obj_dict = {
             'color': self.object.get_fit_color_dict(),
@@ -208,9 +221,12 @@ class ObjectFinder(QtGui.QWidget):
             'hog': self.object.get_fit_hog_dict(),
             'best_hog': self.object.get_best_fit_hog_dict()
         }
+        print self.obj_dict['color']
+        print self.obj_dict['best_color']
         vec = arg_learn.to_vec(self.obj_dict)
         self.bpnn.compute(vec)
         output = self.bpnn.output()
+        print output
         kind_table = ['cloth', 'cup', 'shore']
         k_max = output[0]
         index_max = 0
@@ -224,17 +240,17 @@ class ObjectFinder(QtGui.QWidget):
 
     def detect_name(self):
         name_dict = {}
-        for t in ['color', 'best_color', 'ORB', 'hog', 'best_hog']:
+        weight_table = {
+            'cloth':
+                {'color': 4, 'best_color': 3, 'ORB': 0.5, 'best_ORB': 0.5, 'hog': 1, 'best_hog': 1},
+            'cup':
+                {'color': 2, 'best_color': 2, 'ORB': 1, 'best_ORB': 1, 'hog': 1, 'best_hog': 1},
+            'shore':
+                {'color': 4, 'best_color': 3, 'ORB': 0.5, 'best_ORB': 0.5, 'hog': 3, 'best_hog': 2}
+        }
+        for t in ['color', 'best_color']:
             try:
-                weight=1
-                if t == 'color':
-                    weight = 8
-                elif t=='best_color':
-                    weight = 5
-                elif t=='hog':
-                    weight=3
-                elif t=='best_hog':
-                    weight=2
+                weight = weight_table[self.kind][t]
                 for key, value in self.obj_dict[t][self.kind].items():
                     # print key,value
                     if key in name_dict.keys():
@@ -244,8 +260,23 @@ class ObjectFinder(QtGui.QWidget):
             except:
                 pass
         import operator
-        sorted_name=sorted(name_dict.items(),key=operator.itemgetter(1),reverse=True)
+
+        sorted_name = sorted(name_dict.items(), key=operator.itemgetter(1), reverse=True)
         print sorted_name
+        img_list = []
+        if len(sorted_name) > 6:
+            for i in range(6):
+                img = cv2.imread(
+                    'train_pic/' + str(self.kind) + '/' + str(sorted_name[i][0]) + '.jpg'
+                )
+                img_list.append(img)
+        else:
+            for name in sorted_name:
+                img = cv2.imread(
+                    'train_pic/' + str(self.kind) + '/' + str(name[0]) + '.jpg'
+                )
+                img_list.append(img)
+        self.find_result_img_list = img_list
 
 
 def main():

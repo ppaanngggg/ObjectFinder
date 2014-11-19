@@ -270,11 +270,30 @@ class ImageProcess:
         return copy.deepcopy(self.fore_image)
 
     def compute_color_hist(self):
-        hsv=cv2.cvtColor(self.get_foreground_image(),cv2.COLOR_BGR2HSV)
-        hist=cv2.calcHist([hsv],[0,1],self.get_foreground_mask(),[18,32],[0,180,0,256])
-        hist=hist.reshape((18*32))
+        # hsv=cv2.cvtColor(self.get_foreground_image(),cv2.COLOR_BGR2HSV)
+        # hist=cv2.calcHist([hsv],[0,1],self.get_foreground_mask(),[18,32],[0,180,0,256])
+        # hist=hist.reshape((18*32))
+        # print np.sum(hist)
+        # hist/=np.sum(hist)
+        # print np.sum(hist)
+        # self.color_hist=[float(num) for num in list(hist)]
+        # hist=cv2.calcHist([self.get_foreground_image()],[0,1,2],
+        #                   self.get_foreground_mask(),[16,16,16],[0,256,0,256,0,256])
+        hist=np.zeros((8,8,8),np.float64)
+        fore_img=self.get_foreground_image()
+        mask=self.get_foreground_mask()
+        for row in range(fore_img.shape[0]):
+            for col in range(fore_img.shape[1]):
+                if mask[row,col]:
+                    color=fore_img[row,col]
+                    # print color[0]/16,color[1]/16,color[2]/16
+                    hist[color[0]/32,color[1]/32,color[2]/32]+=1
         hist/=np.sum(hist)
+        np.set_printoptions(threshold=np.nan)
+        print hist
+        hist=hist.reshape((8*8*8))
         self.color_hist=[float(num) for num in list(hist)]
+        print self.color_hist
 
 
     def get_color_hist(self):

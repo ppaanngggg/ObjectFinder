@@ -212,7 +212,7 @@ class Bpnn:
             for node in self.bpnn[i]:
                 print '\t\t', node.weight
 
-    def debug_train(self, example_list, times, eta=0.4, momentum=0.3):
+    def debug_train(self, example_list, times, eta=0.5, momentum=0.5):
         '''
 
         :param example_list:

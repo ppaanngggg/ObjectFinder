@@ -265,14 +265,17 @@ class ObjectProcess:
 
 
 def test():
-    clf_fore = train.train_sample('fore')
-    clf_shape = train.train_sample('shape')
-    # clf_fore=None
-    # clf_shape=None
-    obj = ObjectProcess('train_pic/cloth/0.jpg', clf_fore, clf_shape)
+    import pickle
+    f = open('cache/clf_fore', 'r')
+    clf_fore = pickle.load(f)
+    f.close()
+    f = open('cache/clf_shape', 'r')
+    clf_shape = pickle.load(f)
+    f.close()
+    obj = ObjectProcess('test_pic/0.jpg', clf_fore, clf_shape)
     print obj.get_fit_color_dict(), obj.get_best_fit_color_dict()
-    print obj.get_fit_ORB_dict(), obj.get_best_fit_ORB_dict()
-    print obj.get_fit_hog_dict(), obj.get_best_fit_hog_dict()
+    # print obj.get_fit_ORB_dict(), obj.get_best_fit_ORB_dict()
+    # print obj.get_fit_hog_dict(), obj.get_best_fit_hog_dict()
 
 
 if __name__ == '__main__':

@@ -47,9 +47,9 @@ def store_by_kind(paths, kind, clf_fore, clf_shape):
         print path.split('/')
         ObjectProcess(path, clf_fore, clf_shape) \
             .store_color_hist() \
-            .store_ORB_list() \
-            .store_hog_list() \
-            .write_fore_image('train_pic_fore')
+            # .store_ORB_list() \
+            # .store_hog_list() \
+            # .write_fore_image('train_pic_fore')
 
 
 def main():
@@ -71,17 +71,18 @@ def main():
         thread.join()
 
     t_color_hist = threading.Thread(target=build_k_means_color_hist)
-    t_ORB = threading.Thread(target=build_k_means_ORB_list)
-    t_hog = threading.Thread(target=build_k_means_hog_list)
+    # t_ORB = threading.Thread(target=build_k_means_ORB_list)
+    # t_hog = threading.Thread(target=build_k_means_hog_list)
 
     t_color_hist.start()
-    t_ORB.start()
-    t_hog.start()
+    # t_ORB.start()
+    # t_hog.start()
 
     t_color_hist.join()
-    t_ORB.join()
-    t_hog.join()
+    # t_ORB.join()
+    # t_hog.join()
 
 
 if __name__ == '__main__':
     main()
+    # build_k_means_color_hist()
