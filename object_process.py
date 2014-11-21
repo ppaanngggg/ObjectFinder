@@ -56,7 +56,7 @@ class ObjectProcess:
         self.image_proc_s.image = cv2.bilateralFilter(self.image, 5, 50, 50)
         self.image_proc_s.compute_foreground_mask()
         self.image_proc_s.compute_foreground_image()
-        self.image_proc_s.compute_color_hist()
+        self.image_proc_s.compute_color_list()
         self.image_proc_s.compute_ORB_list()
 
     def init_image_proc_m(self):
@@ -107,8 +107,8 @@ class ObjectProcess:
             return copy.deepcopy(self.hog_image_list)
 
 
-    def get_color_hist(self):
-        return copy.deepcopy(self.image_proc_s.get_color_hist())
+    def get_color_list(self):
+        return copy.deepcopy(self.image_proc_s.get_color_list())
 
     def get_ORB_list(self):
         return copy.deepcopy(self.image_proc_s.get_ORB_list())
@@ -116,13 +116,18 @@ class ObjectProcess:
     def get_hog_list(self):
         return copy.deepcopy(self.hog_list)
 
-    def store_color_hist(self):
-        coll = self.db.color_hist
-        coll.insert({
-            'vec': self.get_color_hist(),
-            'kind': self.kind,
-            'name': self.name
-        })
+    def store_color_list(self):
+        coll = self.db.color_list
+        color_list=self.get_color_list()
+        try:
+            for color in color_list:
+                coll.insert({
+                    'vec': color,
+                    'kind': self.kind,
+                    'name': self.name
+                })
+        except:
+            pass
         return self
 
     def store_ORB_list(self):
@@ -169,31 +174,38 @@ class ObjectProcess:
             arg_dict[fit['kind']] = {}
             arg_dict[fit['kind']][fit['name'][:-4]] = 1
 
-    def find_k_means_color_hist(self):
-        fit_list, best_fit = find_k_means(
-            self.get_color_hist(),
-            'object_finder',
-            'k_means_color_hist',
-            'vec'
-        )
+    def find_k_means_color_list(self):
+        fit_list = []
+        best_fit_list = []
+        print len(self.get_color_list())
+        for ORB in self.get_color_list():
+            fit, best = find_k_means(
+                ORB,
+                'object_finder',
+                'k_means_color_list',
+                'vec'
+            )
+            fit_list += fit
+            best_fit_list.append(best)
         self.fit_color_dict = {}
         for fit in fit_list:
             self.insert_into_dict(fit, self.fit_color_dict)
         self.best_fit_color_dict = {}
-        self.insert_into_dict(best_fit, self.best_fit_color_dict)
+        for best_fit in best_fit_list:
+            self.insert_into_dict(best_fit, self.best_fit_color_dict)
 
     def get_fit_color_dict(self):
         try:
             return copy.deepcopy(self.fit_color_dict)
         except:
-            self.find_k_means_color_hist()
+            self.find_k_means_color_list()
             return copy.deepcopy(self.fit_color_dict)
 
     def get_best_fit_color_dict(self):
         try:
             return copy.deepcopy(self.best_fit_color_dict)
         except:
-            self.find_k_means_color_hist()
+            self.find_k_means_color_list()
             return copy.deepcopy(self.best_fit_color_dict)
 
     def find_k_means_ORB_list(self):

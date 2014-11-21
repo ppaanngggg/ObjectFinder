@@ -7,12 +7,12 @@ import train
 
 def build_k_means_color_hist():
     k_means_multi_layer(
-        find_data('object_finder', 'color_hist'),
+        find_data('object_finder', 'color_list'),
         'vec',
         8,
         'none',
         'object_finder',
-        'k_means_color_hist',
+        'k_means_color_list',
         2
     )
 
@@ -46,7 +46,7 @@ def store_by_kind(paths, kind, clf_fore, clf_shape):
     for path in path_list:
         print path.split('/')
         ObjectProcess(path, clf_fore, clf_shape) \
-            .store_color_hist() \
+            .store_color_list() \
             # .store_ORB_list() \
             # .store_hog_list() \
             # .write_fore_image('train_pic_fore')
@@ -56,8 +56,13 @@ def main():
     paths = PathProcess('train_pic')
     kind_list = paths.get_kind_list()
 
-    clf_fore = train.train_sample('fore')
-    clf_shape = train.train_sample('shape')
+    import pickle
+    f = open('cache/clf_fore', 'r')
+    clf_fore = pickle.load(f)
+    f.close()
+    f = open('cache/clf_shape', 'r')
+    clf_shape = pickle.load(f)
+    f.close()
 
     thread_list = [
         threading.Thread(target=store_by_kind, args=(paths, kind, clf_fore, clf_shape))

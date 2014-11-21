@@ -7,8 +7,13 @@ import BPNN
 
 
 def store_train_find_sample():
-    clf_fore = train.train_sample('fore')
-    clf_shape = train.train_sample('shape')
+    import pickle
+    f = open('cache/clf_fore', 'r')
+    clf_fore = pickle.load(f)
+    f.close()
+    f = open('cache/clf_shape', 'r')
+    clf_shape = pickle.load(f)
+    f.close()
 
     client = MongoClient()
     db = client.object_finder
@@ -83,7 +88,7 @@ def train_arg():
 
 
 if __name__ == '__main__':
-    store_train_find_sample()
+    # store_train_find_sample()
     bpnn=train_arg()
     f = open('cache/bpnn', 'w')
     pickle.dump(bpnn, f)

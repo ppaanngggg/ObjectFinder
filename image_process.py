@@ -23,7 +23,7 @@ class ImageProcess:
         # compute info
         self.compute_segments()
         self.compute_point_list_list()
-        self.compute_segment_image_list()
+        # self.compute_segment_image_list()
         self.compute_rect_list()
         self.compute_hog_list()
         self.compute_boundary_vec_list()
@@ -269,35 +269,51 @@ class ImageProcess:
     def get_foreground_image(self):
         return copy.deepcopy(self.fore_image)
 
-    def compute_color_hist(self):
-        # hsv=cv2.cvtColor(self.get_foreground_image(),cv2.COLOR_BGR2HSV)
-        # hist=cv2.calcHist([hsv],[0,1],self.get_foreground_mask(),[18,32],[0,180,0,256])
-        # hist=hist.reshape((18*32))
-        # print np.sum(hist)
-        # hist/=np.sum(hist)
-        # print np.sum(hist)
-        # self.color_hist=[float(num) for num in list(hist)]
-        # hist=cv2.calcHist([self.get_foreground_image()],[0,1,2],
-        #                   self.get_foreground_mask(),[16,16,16],[0,256,0,256,0,256])
-        hist=np.zeros((8,8,8),np.float64)
-        fore_img=self.get_foreground_image()
-        mask=self.get_foreground_mask()
-        for row in range(fore_img.shape[0]):
-            for col in range(fore_img.shape[1]):
-                if mask[row,col]:
-                    color=fore_img[row,col]
-                    # print color[0]/16,color[1]/16,color[2]/16
-                    hist[color[0]/32,color[1]/32,color[2]/32]+=1
-        hist/=np.sum(hist)
-        np.set_printoptions(threshold=np.nan)
-        print hist
-        hist=hist.reshape((8*8*8))
-        self.color_hist=[float(num) for num in list(hist)]
-        print self.color_hist
+    def compute_color_list(self):
+        # img=self.get_image()
+        # cv2.imshow('img',img)
+        # cv2.waitKey()
+        lab = cv2.cvtColor(self.get_image(), cv2.COLOR_BGR2Lab)
+        segment_value_set = set()
+        for row in self.segments:
+            for pixel in row:
+                segment_value_set.add(pixel)
+        pixel_list_list = [[] for i in range(len(segment_value_set))]
+        for row in range(self.segments.shape[0]):
+            for col in range(self.segments.shape[1]):
+                pixel_list_list[self.segments[row, col]].append(lab[row, col])
+        # print pixel_list_list[0]
+        # print pixel_list_list[1]
+        pixel_array_list = []
+        target_list = self.get_classify_target_list()
+        for i in range(len(target_list)):
+            if target_list[i]:
+                pixel_array_list.append(np.array(pixel_list_list[i]))
+        self.color_list = []
+        for pixel_array in pixel_array_list:
+            # print pixel_array
+            l = pixel_array[:, 0]
+            a = pixel_array[:, 1]
+            b = pixel_array[:, 2]
+            color = []
+            for item in [l, a, b]:
+                # print item
+                from scipy.stats import skew
+
+                mean = np.mean(item)
+                # print mean
+                var = np.sqrt(np.var(item))
+                # print var
+                s = skew(item)
+                # print s
+                color.append(mean)
+                color.append(var)
+                color.append(s)
+            self.color_list.append(color)
 
 
-    def get_color_hist(self):
-        return copy.deepcopy(self.color_hist)
+    def get_color_list(self):
+        return copy.deepcopy(self.color_list)
 
     def compute_ORB_list(self):
         orb = cv2.ORB_create(nfeatures=200)
@@ -314,13 +330,23 @@ class ImageProcess:
 def test():
     img = cv2.imread('train_pic/cloth/0.jpg')
     img_proc = ImageProcess(
-        cv2.medianBlur(img,5), 70
+        cv2.medianBlur(img, 5), 70
     )
-    img_proc.label_classify_target_list(True)
-    img_proc.image=cv2.bilateralFilter(img,5,50,50)
+    import pickle
+
+    f = open('cache/clf_fore', 'r')
+    clf_fore = pickle.load(f)
+    f.close()
+    img_proc.set_classify_target_list(
+        clf_fore.predict(
+            img_proc.get_classify_vec_list()
+        )
+    )
+    img_proc.image = cv2.bilateralFilter(img, 5, 50, 50)
     img_proc.compute_foreground_mask()
     img_proc.compute_foreground_image()
-    img_proc.compute_color_hist()
+    img_proc.compute_color_list()
+
 
 if __name__ == '__main__':
     test()

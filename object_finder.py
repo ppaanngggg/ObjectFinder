@@ -9,6 +9,7 @@ import copy
 from PyQt4 import QtGui, QtCore
 import sys
 import pickle
+import numpy as np
 
 
 class Note(QtGui.QWidget):
@@ -242,13 +243,13 @@ class ObjectFinder(QtGui.QWidget):
         name_dict = {}
         weight_table = {
             'cloth':
-                {'color': 4, 'best_color': 3, 'ORB': 0.5, 'best_ORB': 0.5, 'hog': 1, 'best_hog': 1},
+                {'color': 3, 'best_color': 2, 'ORB': 0.5, 'best_ORB': 0.5, 'hog': 1, 'best_hog': 1},
             'cup':
                 {'color': 2, 'best_color': 2, 'ORB': 1, 'best_ORB': 1, 'hog': 1, 'best_hog': 1},
             'shore':
                 {'color': 4, 'best_color': 3, 'ORB': 0.5, 'best_ORB': 0.5, 'hog': 3, 'best_hog': 2}
         }
-        for t in ['color', 'best_color']:
+        for t in ['color', 'best_color','ORB','best_ORB','hog','best_hog']:
             try:
                 weight = weight_table[self.kind][t]
                 for key, value in self.obj_dict[t][self.kind].items():
