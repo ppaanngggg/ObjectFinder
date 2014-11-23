@@ -98,9 +98,9 @@ class ObjectFinder(QtGui.QWidget):
         self.btm_shape = QtGui.QPushButton('Shape')
         self.btm_shape.setEnabled(False)
         self.btm_shape.clicked.connect(self.btm_shape_clicked)
-        self.btm_ORB = QtGui.QPushButton('ORB')
-        self.btm_ORB.setEnabled(False)
-        self.btm_ORB.clicked.connect(self.btm_ORB_clicked)
+        self.btm_sift = QtGui.QPushButton('sift')
+        self.btm_sift.setEnabled(False)
+        self.btm_sift.clicked.connect(self.btm_sift_clicked)
         self.btm_result = QtGui.QPushButton('result')
         self.btm_result.setEnabled(False)
         self.btm_result.clicked.connect(self.btm_result_clicked)
@@ -110,7 +110,7 @@ class ObjectFinder(QtGui.QWidget):
         self.layout.addWidget(self.btm_fore)
         self.layout.addWidget(self.btm_seg)
         self.layout.addWidget(self.btm_shape)
-        self.layout.addWidget(self.btm_ORB)
+        self.layout.addWidget(self.btm_sift)
         self.layout.addWidget(self.btm_result)
         self.setLayout(self.layout)
 
@@ -162,7 +162,7 @@ class ObjectFinder(QtGui.QWidget):
             self.btm_fore.setEnabled(True)
             self.btm_seg.setEnabled(True)
             self.btm_shape.setEnabled(True)
-            self.btm_ORB.setEnabled(True)
+            self.btm_sift.setEnabled(True)
             self.btm_result.setEnabled(True)
 
     def btm_img_clicked(self):
@@ -197,10 +197,10 @@ class ObjectFinder(QtGui.QWidget):
         )
         image_view.show()
 
-    def btm_ORB_clicked(self):
+    def btm_sift_clicked(self):
         image_view = ImageView(
-            self, 'ORB',
-            [self.object.image_proc_s.ORB_image],
+            self, 'sift',
+            [self.object.image_proc_s.sift_image],
             1
         )
         image_view.show()
@@ -217,8 +217,8 @@ class ObjectFinder(QtGui.QWidget):
         self.obj_dict = {
             'color': self.object.get_fit_color_dict(),
             'best_color': self.object.get_best_fit_color_dict(),
-            'ORB': self.object.get_fit_ORB_dict(),
-            'best_ORB': self.object.get_best_fit_ORB_dict(),
+            'sift': self.object.get_fit_sift_dict(),
+            'best_sift': self.object.get_best_fit_sift_dict(),
             'hog': self.object.get_fit_hog_dict(),
             'best_hog': self.object.get_best_fit_hog_dict()
         }
@@ -243,13 +243,13 @@ class ObjectFinder(QtGui.QWidget):
         name_dict = {}
         weight_table = {
             'cloth':
-                {'color': 3, 'best_color': 2, 'ORB': 0.5, 'best_ORB': 0.5, 'hog': 1, 'best_hog': 1},
+                {'color': 3, 'best_color': 2, 'sift': 0.5, 'best_sift': 0.5, 'hog': 1, 'best_hog': 1},
             'cup':
-                {'color': 2, 'best_color': 2, 'ORB': 1, 'best_ORB': 1, 'hog': 1, 'best_hog': 1},
+                {'color': 0.1, 'best_color': 0, 'sift': 0.5, 'best_sift': 0, 'hog': 1, 'best_hog': 0},
             'shore':
-                {'color': 4, 'best_color': 3, 'ORB': 0.5, 'best_ORB': 0.5, 'hog': 3, 'best_hog': 2}
+                {'color': 4, 'best_color': 3, 'sift': 0.5, 'best_sift': 0.5, 'hog': 3, 'best_hog': 2}
         }
-        for t in ['color', 'best_color','ORB','best_ORB','hog','best_hog']:
+        for t in ['color', 'best_color','sift','best_sift','hog','best_hog']:
             try:
                 weight = weight_table[self.kind][t]
                 for key, value in self.obj_dict[t][self.kind].items():

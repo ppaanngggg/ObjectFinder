@@ -17,14 +17,14 @@ def build_k_means_color_hist():
     )
 
 
-def build_k_means_ORB_list():
+def build_k_means_sift_list():
     k_means_multi_layer(
-        find_data('object_finder', 'ORB_list'),
+        find_data('object_finder', 'sift_list'),
         'vec',
         8,
         'none',
         'object_finder',
-        'k_means_ORB_list',
+        'k_means_sift_list',
         2
     )
 
@@ -46,8 +46,8 @@ def store_by_kind(paths, kind, clf_fore, clf_shape):
     for path in path_list:
         print path.split('/')
         ObjectProcess(path, clf_fore, clf_shape) \
-            .store_color_list() \
-            # .store_ORB_list() \
+            .store_sift_list() \
+            # .store_color_list() \
             # .store_hog_list() \
             # .write_fore_image('train_pic_fore')
 
@@ -75,16 +75,16 @@ def main():
     for thread in thread_list:
         thread.join()
 
-    t_color_hist = threading.Thread(target=build_k_means_color_hist)
-    # t_ORB = threading.Thread(target=build_k_means_ORB_list)
+    # t_color_hist = threading.Thread(target=build_k_means_color_hist)
+    t_sift = threading.Thread(target=build_k_means_sift_list)
     # t_hog = threading.Thread(target=build_k_means_hog_list)
 
-    t_color_hist.start()
-    # t_ORB.start()
+    # t_color_hist.start()
+    t_sift.start()
     # t_hog.start()
 
-    t_color_hist.join()
-    # t_ORB.join()
+    # t_color_hist.join()
+    t_sift.join()
     # t_hog.join()
 
 

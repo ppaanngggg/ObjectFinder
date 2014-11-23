@@ -29,8 +29,8 @@ def store_train_find_sample():
                 'name': obj_proc.name,
                 'color': obj_proc.get_fit_color_dict(),
                 'best_color': obj_proc.get_best_fit_color_dict(),
-                'ORB': obj_proc.get_fit_ORB_dict(),
-                'best_ORB': obj_proc.get_best_fit_ORB_dict(),
+                'sift': obj_proc.get_fit_sift_dict(),
+                'best_sift': obj_proc.get_best_fit_sift_dict(),
                 'hog': obj_proc.get_fit_hog_dict(),
                 'best_hog': obj_proc.get_best_fit_hog_dict()
             })
@@ -48,7 +48,7 @@ def load_train_find_sample():
 
 def to_vec(train_find):
     vec = []
-    for i in ('color', 'best_color', 'ORB', 'best_ORB', 'hog', 'best_hog'):
+    for i in ('color', 'best_color', 'sift', 'best_sift', 'hog', 'best_hog'):
         for j in ('cloth', 'cup', 'shore'):
             try:
                 vec.append(sum(train_find[i][j].values()))
@@ -57,7 +57,7 @@ def to_vec(train_find):
     for i in range(0, len(vec), 3):
         s = sum(vec[i:i + 3])
         for j in range(i, i + 3):
-            vec[j] /= float(s)
+            vec[j] /= (float(s)+10 ** -10)
     return vec
 
 def train_arg():

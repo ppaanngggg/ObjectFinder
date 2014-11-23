@@ -57,7 +57,7 @@ class ObjectProcess:
         self.image_proc_s.compute_foreground_mask()
         self.image_proc_s.compute_foreground_image()
         self.image_proc_s.compute_color_list()
-        self.image_proc_s.compute_ORB_list()
+        self.image_proc_s.compute_sift_list()
 
     def init_image_proc_m(self):
         self.image_proc_m = ImageProcess(
@@ -110,8 +110,8 @@ class ObjectProcess:
     def get_color_list(self):
         return copy.deepcopy(self.image_proc_s.get_color_list())
 
-    def get_ORB_list(self):
-        return copy.deepcopy(self.image_proc_s.get_ORB_list())
+    def get_sift_list(self):
+        return copy.deepcopy(self.image_proc_s.get_sift_list())
 
     def get_hog_list(self):
         return copy.deepcopy(self.hog_list)
@@ -130,13 +130,13 @@ class ObjectProcess:
             pass
         return self
 
-    def store_ORB_list(self):
-        coll = self.db.ORB_list
-        ORB_list = self.get_ORB_list()
+    def store_sift_list(self):
+        coll = self.db.sift_list
+        sift_list = self.get_sift_list()
         try:
-            for ORB in ORB_list:
+            for sift in sift_list:
                 coll.insert({
-                    'vec': [int(num) for num in ORB],
+                    'vec': [int(num) for num in sift],
                     'kind': self.kind,
                     'name': self.name
                 })
@@ -178,9 +178,9 @@ class ObjectProcess:
         fit_list = []
         best_fit_list = []
         print len(self.get_color_list())
-        for ORB in self.get_color_list():
+        for color in self.get_color_list():
             fit, best = find_k_means(
-                ORB,
+                color,
                 'object_finder',
                 'k_means_color_list',
                 'vec'
@@ -208,39 +208,42 @@ class ObjectProcess:
             self.find_k_means_color_list()
             return copy.deepcopy(self.best_fit_color_dict)
 
-    def find_k_means_ORB_list(self):
+    def find_k_means_sift_list(self):
         fit_list = []
         best_fit_list = []
-        print len(self.get_ORB_list())
-        for ORB in self.get_ORB_list():
-            fit, best = find_k_means(
-                ORB,
-                'object_finder',
-                'k_means_ORB_list',
-                'vec'
-            )
-            fit_list += fit
-            best_fit_list.append(best)
-        self.fit_ORB_dict = {}
+        try:
+            print len(self.get_sift_list())
+            for sift in self.get_sift_list():
+                fit, best = find_k_means(
+                    sift,
+                    'object_finder',
+                    'k_means_sift_list',
+                    'vec'
+                )
+                fit_list += fit
+                best_fit_list.append(best)
+        except:
+            print 0
+        self.fit_sift_dict = {}
         for fit in fit_list:
-            self.insert_into_dict(fit, self.fit_ORB_dict)
-        self.best_fit_ORB_dict = {}
+            self.insert_into_dict(fit, self.fit_sift_dict)
+        self.best_fit_sift_dict = {}
         for best_fit in best_fit_list:
-            self.insert_into_dict(best_fit, self.best_fit_ORB_dict)
+            self.insert_into_dict(best_fit, self.best_fit_sift_dict)
 
-    def get_fit_ORB_dict(self):
+    def get_fit_sift_dict(self):
         try:
-            return copy.deepcopy(self.fit_ORB_dict)
+            return copy.deepcopy(self.fit_sift_dict)
         except:
-            self.find_k_means_ORB_list()
-            return copy.deepcopy(self.fit_ORB_dict)
+            self.find_k_means_sift_list()
+            return copy.deepcopy(self.fit_sift_dict)
 
-    def get_best_fit_ORB_dict(self):
+    def get_best_fit_sift_dict(self):
         try:
-            return copy.deepcopy(self.best_fit_ORB_dict)
+            return copy.deepcopy(self.best_fit_sift_dict)
         except:
-            self.find_k_means_ORB_list()
-            return copy.deepcopy(self.best_fit_ORB_dict)
+            self.find_k_means_sift_list()
+            return copy.deepcopy(self.best_fit_sift_dict)
 
     def find_k_means_hog_list(self):
         fit_list = []
@@ -286,7 +289,7 @@ def test():
     f.close()
     obj = ObjectProcess('test_pic/0.jpg', clf_fore, clf_shape)
     print obj.get_fit_color_dict(), obj.get_best_fit_color_dict()
-    # print obj.get_fit_ORB_dict(), obj.get_best_fit_ORB_dict()
+    # print obj.get_fit_sift_dict(), obj.get_best_fit_sift_dict()
     # print obj.get_fit_hog_dict(), obj.get_best_fit_hog_dict()
 
 

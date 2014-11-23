@@ -3,6 +3,7 @@ import numpy as np
 import skimage.segmentation as skseg
 import hog
 import copy
+from cv2.xfeatures2d import *
 
 
 class ImageProcess:
@@ -315,16 +316,16 @@ class ImageProcess:
     def get_color_list(self):
         return copy.deepcopy(self.color_list)
 
-    def compute_ORB_list(self):
-        orb = cv2.ORB_create(nfeatures=200)
-        kp_list = orb.detect(self.get_image(), self.get_foreground_mask())
-        kp_list, self.ORB_list = orb.compute(self.get_image(), kp_list)
-        self.ORB_image = cv2.drawKeypoints(self.get_foreground_image(), kp_list, None)
-        # cv2.imshow('tmp', tmp)
+    def compute_sift_list(self):
+        sift = SIFT_create(nfeatures=100)
+        kp_list, self.sift_list = sift.detectAndCompute(self.get_image(), self.get_foreground_mask())
+        self.sift_image = cv2.drawKeypoints(self.get_foreground_image(), kp_list, None,
+                                            flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        # cv2.imshow('tmp', self.sift_image)
         # cv2.waitKey()
 
-    def get_ORB_list(self):
-        return copy.deepcopy(self.ORB_list)
+    def get_sift_list(self):
+        return copy.deepcopy(self.sift_list)
 
 
 def test():
@@ -345,7 +346,7 @@ def test():
     img_proc.image = cv2.bilateralFilter(img, 5, 50, 50)
     img_proc.compute_foreground_mask()
     img_proc.compute_foreground_image()
-    img_proc.compute_color_list()
+    img_proc.compute_sift_list()
 
 
 if __name__ == '__main__':
