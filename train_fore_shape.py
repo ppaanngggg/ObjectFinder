@@ -27,9 +27,19 @@ def test_sample(clf,mode):
     vec_list, target_list = find_sample('test_'+mode)
     print clf.score(vec_list, target_list)
 
-def test():
-    test_sample(train_sample('fore'),'fore')
-    test_sample(train_sample('shape'),'shape')
+
+def main():
+    import pickle
+    clf_fore = train_sample('fore')
+    f = open('cache/clf_fore', 'w')
+    pickle.dump(clf_fore, f)
+    f.close()
+    test_sample(clf_fore,'fore')
+    clf_shape = train_sample('shape')
+    f = open('cache/clf_shape', 'w')
+    pickle.dump(clf_shape, f)
+    f.close()
+    test_sample(clf_shape,'shape')
 
 if __name__=='__main__':
-    test()
+    main()

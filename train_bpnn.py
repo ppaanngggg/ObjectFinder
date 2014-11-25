@@ -1,12 +1,11 @@
 from path_process import PathProcess
 from object_process import ObjectProcess
-import train
 from pymongo import MongoClient
 import pickle
 import BPNN
 
 
-def store_train_find_sample():
+def store_sample():
     import pickle
     f = open('cache/clf_fore', 'r')
     clf_fore = pickle.load(f)
@@ -17,7 +16,7 @@ def store_train_find_sample():
 
     client = MongoClient()
     db = client.object_finder
-    coll = db.train_find
+    coll = db.train_bpnn
 
     path_proc = PathProcess('train_pic_arg')
     for kind in path_proc.get_kind_list():
@@ -36,22 +35,22 @@ def store_train_find_sample():
             })
 
 
-def load_train_find_sample():
+def load_sample():
     client = MongoClient()
     db = client.object_finder
-    coll = db.train_find
+    coll = db.train_bpnn
 
-    train_find_list = []
+    find_list = []
     for find in coll.find():
-        train_find_list.append(find)
-    return train_find_list
+        find_list.append(find)
+    return find_list
 
-def to_vec(train_find):
+def to_vec(one):
     vec = []
     for i in ('color', 'best_color', 'sift', 'best_sift', 'hog', 'best_hog'):
         for j in ('cloth', 'cup', 'shore'):
             try:
-                vec.append(sum(train_find[i][j].values()))
+                vec.append(sum(one[i][j].values()))
             except:
                 vec.append(0)
     for i in range(0, len(vec), 3):
@@ -60,16 +59,16 @@ def to_vec(train_find):
             vec[j] /= (float(s)+10 ** -10)
     return vec
 
-def train_arg():
-    train_find_list = load_train_find_sample()
+def train_bpnn():
+    find_list = load_sample()
     vec_list = []
     target_list = []
-    for train_find in train_find_list:
-        vec=to_vec(train_find)
+    for one in find_list:
+        vec=to_vec(one)
         vec_list.append(vec)
         target = []
         for i in ('cloth', 'cup', 'shore'):
-            if train_find['kind'] == i:
+            if one['kind'] == i:
                 target.append(1)
             else:
                 target.append(0)
@@ -79,7 +78,7 @@ def train_arg():
     sample_list = []
     for i in range(len(vec_list)):
         sample_list.append([vec_list[i], target_list[i]])
-    bpnn.train(sample_list, 0.005)
+    bpnn.train(sample_list, 0.01)
     # for vec in vec_list:
     #     bpnn.compute(vec)
     #     print bpnn.output()
@@ -88,8 +87,9 @@ def train_arg():
 
 
 if __name__ == '__main__':
-    # store_train_find_sample()
-    bpnn=train_arg()
+    # store_sample()
+
+    bpnn=train_bpnn()
     f = open('cache/bpnn', 'w')
     pickle.dump(bpnn, f)
     f.close()

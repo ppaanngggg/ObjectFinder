@@ -1,10 +1,6 @@
 import cv2
-import train
-import arg_learn
+import train_bpnn
 from object_process import ObjectProcess
-from k_means_multi_layer import *
-from pymongo import MongoClient
-import threading
 import copy
 from PyQt4 import QtGui, QtCore
 import sys
@@ -68,16 +64,6 @@ class ObjectFinder(QtGui.QWidget):
         note = Note('training...')
         note.show()
 
-        # thread_fore = threading.Thread(target=self.train_fore)
-        # thread_shape = threading.Thread(target=self.train_shape)
-        # thread_bpnn = threading.Thread(target=self.train_bpnn)
-        # thread_fore.start()
-        # thread_shape.start()
-        # thread_bpnn.start()
-        # thread_fore.join()
-        # thread_shape.join()
-        # thread_bpnn.join()
-
         self.read_clf_fore()
         self.read_clf_shape()
         self.read_bpnn()
@@ -114,32 +100,14 @@ class ObjectFinder(QtGui.QWidget):
         self.layout.addWidget(self.btm_result)
         self.setLayout(self.layout)
 
-    def train_fore(self):
-        self.clf_fore = train.train_sample('fore')
-        f = open('cache/clf_fore', 'w')
-        pickle.dump(self.clf_fore, f)
-        f.close()
-
     def read_clf_fore(self):
         f = open('cache/clf_fore', 'r')
         self.clf_fore = pickle.load(f)
         f.close()
 
-    def train_shape(self):
-        self.clf_shape = train.train_sample('shape')
-        f = open('cache/clf_shape', 'w')
-        pickle.dump(self.clf_shape, f)
-        f.close()
-
     def read_clf_shape(self):
         f = open('cache/clf_shape', 'r')
         self.clf_shape = pickle.load(f)
-        f.close()
-
-    def train_bpnn(self):
-        self.bpnn = arg_learn.train_arg()
-        f = open('cache/bpnn', 'w')
-        pickle.dump(self.bpnn, f)
         f.close()
 
     def read_bpnn(self):
@@ -209,7 +177,7 @@ class ObjectFinder(QtGui.QWidget):
         image_view = ImageView(
             self, 'result',
             self.find_result_img_list,
-            3
+            2
         )
         image_view.show()
 
@@ -222,9 +190,8 @@ class ObjectFinder(QtGui.QWidget):
             'hog': self.object.get_fit_hog_dict(),
             'best_hog': self.object.get_best_fit_hog_dict()
         }
-        print self.obj_dict['color']
-        print self.obj_dict['best_color']
-        vec = arg_learn.to_vec(self.obj_dict)
+        # print self.obj_dict['color']
+        vec = train_bpnn.to_vec(self.obj_dict)
         self.bpnn.compute(vec)
         output = self.bpnn.output()
         print output
@@ -237,17 +204,22 @@ class ObjectFinder(QtGui.QWidget):
                 index_max = index
         self.kind = kind_table[index_max]
         print self.kind
+        for t in ['color', 'best_color','sift','best_sift','hog','best_hog']:
+            try:
+                print self.obj_dict[t][self.kind]
+            except:
+                print '{}'
 
 
     def detect_name(self):
         name_dict = {}
         weight_table = {
             'cloth':
-                {'color': 3, 'best_color': 2, 'sift': 0.5, 'best_sift': 0.5, 'hog': 1, 'best_hog': 1},
+                {'color': 0.6, 'best_color': 0.1, 'sift': 0.5, 'best_sift': 0.3, 'hog': 0.7, 'best_hog': 0.2},
             'cup':
-                {'color': 0.1, 'best_color': 0, 'sift': 0.5, 'best_sift': 0, 'hog': 1, 'best_hog': 0},
+                {'color': 0.2, 'best_color': 0, 'sift': 0.5, 'best_sift': 0, 'hog': 1, 'best_hog': 0},
             'shore':
-                {'color': 4, 'best_color': 3, 'sift': 0.5, 'best_sift': 0.5, 'hog': 3, 'best_hog': 2}
+                {'color': 0.8, 'best_color': 0.2, 'sift': 0.2, 'best_sift': 0, 'hog': 1.1, 'best_hog': 0.5}
         }
         for t in ['color', 'best_color','sift','best_sift','hog','best_hog']:
             try:
@@ -265,8 +237,8 @@ class ObjectFinder(QtGui.QWidget):
         sorted_name = sorted(name_dict.items(), key=operator.itemgetter(1), reverse=True)
         print sorted_name
         img_list = []
-        if len(sorted_name) > 6:
-            for i in range(6):
+        if len(sorted_name) > 4:
+            for i in range(4):
                 img = cv2.imread(
                     'train_pic/' + str(self.kind) + '/' + str(sorted_name[i][0]) + '.jpg'
                 )
