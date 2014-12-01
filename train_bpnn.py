@@ -18,7 +18,7 @@ def store_sample():
     db = client.object_finder
     coll = db.train_bpnn
 
-    path_proc = PathProcess('train_pic_arg')
+    path_proc = PathProcess('train_pic_bpnn')
     for kind in path_proc.get_kind_list():
         for path in path_proc.get_file_path_list(kind):
             print path
@@ -48,7 +48,7 @@ def load_sample():
 def to_vec(one):
     vec = []
     for i in ('color', 'best_color', 'sift', 'best_sift', 'hog', 'best_hog'):
-        for j in ('cloth', 'cup', 'shore'):
+        for j in ('cloth', 'cup', 'shoe'):
             try:
                 vec.append(sum(one[i][j].values()))
             except:
@@ -67,7 +67,7 @@ def train_bpnn():
         vec=to_vec(one)
         vec_list.append(vec)
         target = []
-        for i in ('cloth', 'cup', 'shore'):
+        for i in ('cloth', 'cup', 'shoe'):
             if one['kind'] == i:
                 target.append(1)
             else:

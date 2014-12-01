@@ -2,7 +2,6 @@ from image_process import ImageProcess
 import cv2
 import copy
 from pymongo import MongoClient
-import train
 import threading
 import numpy as np
 from k_means_multi_layer import *
@@ -288,7 +287,7 @@ def test():
     clf_shape = pickle.load(f)
     f.close()
     obj = ObjectProcess('test_pic/0.jpg', clf_fore, clf_shape)
-    print obj.get_fit_color_dict(), obj.get_best_fit_color_dict()
+    # print obj.get_fit_color_dict(), obj.get_best_fit_color_dict()
     # print obj.get_fit_sift_dict(), obj.get_best_fit_sift_dict()
     # print obj.get_fit_hog_dict(), obj.get_best_fit_hog_dict()
 

@@ -4,7 +4,7 @@ import numpy as np
 
 def hog(img, cell_size, block_size, row_num, col_num, angle_bin):
     image = np.copy(img)
-    image = cv2.medianBlur(image, 3)
+    # image = cv2.medianBlur(image, 3)
     # cv2.imshow('image',image)
     grad_x = cv2.Sobel(image, cv2.CV_32F, 1, 0)
     grad_y = cv2.Sobel(image, cv2.CV_32F, 0, 1)

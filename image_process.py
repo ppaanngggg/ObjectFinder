@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
 import skimage.segmentation as skseg
-import hog
+from skimage.feature import hog
+# import hog
 import copy
 from cv2.xfeatures2d import *
 
@@ -129,12 +130,21 @@ class ImageProcess:
         self.hog_image_list = []
         for rect in self.rect_list:
             hog_img = np.copy(self.image[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2]])
-            vec, image = hog.hog(
-                hog_img, self.hog_cell_size, self.hog_block_size,
-                self.hog_row_num, self.hog_col_num, self.hog_angle_bin
-            )
-            self.hog_list.append(vec)
+            hog_img=cv2.cvtColor(hog_img,cv2.COLOR_BGR2GRAY)
+            hog_img=cv2.resize(hog_img,(32,32))
+            vec,image=hog(hog_img,visualise=True,normalise=True)
+            # vec, image = hog.hog(
+            #     hog_img, self.hog_cell_size, self.hog_block_size,
+            #     self.hog_row_num, self.hog_col_num, self.hog_angle_bin
+            # )
+            self.hog_list.append(list(vec))
+            print len(list(vec))
+            # print vec
+            # print type(vec)
+            # print type(vec[0])
             self.hog_image_list.append(image)
+            # cv2.imshow('img',image)
+            # cv2.waitKey()
 
     def get_hog_list(self):
         return copy.deepcopy(self.hog_list)
@@ -329,9 +339,9 @@ class ImageProcess:
 
 
 def test():
-    img = cv2.imread('train_pic/cloth/0.jpg')
+    img = cv2.imread('train_pic/cloth/218.jpg')
     img_proc = ImageProcess(
-        cv2.medianBlur(img, 5), 70
+        img, 70
     )
     import pickle
 
@@ -343,10 +353,11 @@ def test():
             img_proc.get_classify_vec_list()
         )
     )
-    img_proc.image = cv2.bilateralFilter(img, 5, 50, 50)
-    img_proc.compute_foreground_mask()
-    img_proc.compute_foreground_image()
-    img_proc.compute_sift_list()
+    # img_proc.image = cv2.bilateralFilter(img, 5, 50, 50)
+    # img_proc.compute_foreground_mask()
+    # img_proc.compute_foreground_image()
+
+    # img_proc.compute_sift_list()
 
 
 if __name__ == '__main__':

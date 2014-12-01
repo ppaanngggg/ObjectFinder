@@ -123,8 +123,8 @@ class ObjectFinder(QtGui.QWidget):
             note = Note('processing...')
             note.show()
             self.object = ObjectProcess(str(path), self.clf_fore, self.clf_shape)
-            self.detect_kind()
-            self.detect_name()
+            # self.detect_kind()
+            # self.detect_name()
             note.close()
             self.btm_img.setEnabled(True)
             self.btm_fore.setEnabled(True)
@@ -195,7 +195,7 @@ class ObjectFinder(QtGui.QWidget):
         self.bpnn.compute(vec)
         output = self.bpnn.output()
         print output
-        kind_table = ['cloth', 'cup', 'shore']
+        kind_table = ['cloth', 'cup', 'shoe']
         k_max = output[0]
         index_max = 0
         for index in range(1, len(output)):
@@ -204,7 +204,7 @@ class ObjectFinder(QtGui.QWidget):
                 index_max = index
         self.kind = kind_table[index_max]
         print self.kind
-        for t in ['color', 'best_color','sift','best_sift','hog','best_hog']:
+        for t in ['color', 'best_color', 'sift', 'best_sift', 'hog', 'best_hog']:
             try:
                 print self.obj_dict[t][self.kind]
             except:
@@ -218,10 +218,10 @@ class ObjectFinder(QtGui.QWidget):
                 {'color': 0.6, 'best_color': 0.1, 'sift': 0.5, 'best_sift': 0.3, 'hog': 0.7, 'best_hog': 0.2},
             'cup':
                 {'color': 0.2, 'best_color': 0, 'sift': 0.5, 'best_sift': 0, 'hog': 1, 'best_hog': 0},
-            'shore':
+            'shoe':
                 {'color': 0.8, 'best_color': 0.2, 'sift': 0.2, 'best_sift': 0, 'hog': 1.1, 'best_hog': 0.5}
         }
-        for t in ['color', 'best_color','sift','best_sift','hog','best_hog']:
+        for t in ['color', 'best_color', 'sift', 'best_sift', 'hog', 'best_hog']:
             try:
                 weight = weight_table[self.kind][t]
                 for key, value in self.obj_dict[t][self.kind].items():

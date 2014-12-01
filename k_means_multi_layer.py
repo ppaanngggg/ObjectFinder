@@ -54,7 +54,8 @@ def k_means_multi_layer(data, key, n_clusters, parent, db_name, coll_name, num):
         return
     cluster_list = k_means_one_layer(data, key, n_clusters, parent, db_name, coll_name)
     for cluster in cluster_list:
-        k_means_multi_layer(cluster, key, n_clusters, cluster[0]['parent'], db_name, coll_name, num)
+        if len(cluster)>0:
+            k_means_multi_layer(cluster, key, n_clusters, cluster[0]['parent'], db_name, coll_name, num)
 
 
 def print_k_means(db_name, coll_name, key, parent='none', tab_num=0):
