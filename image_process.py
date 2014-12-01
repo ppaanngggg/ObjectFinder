@@ -333,20 +333,21 @@ def test():
     img_proc = ImageProcess(
         cv2.medianBlur(img, 5), 70
     )
-    import pickle
-
-    f = open('cache/clf_fore', 'r')
-    clf_fore = pickle.load(f)
-    f.close()
-    img_proc.set_classify_target_list(
-        clf_fore.predict(
-            img_proc.get_classify_vec_list()
-        )
-    )
-    img_proc.image = cv2.bilateralFilter(img, 5, 50, 50)
-    img_proc.compute_foreground_mask()
-    img_proc.compute_foreground_image()
-    img_proc.compute_sift_list()
+    img_proc.label_classify_target_list(True)
+    # import pickle
+    #
+    # f = open('cache/clf_fore', 'r')
+    # clf_fore = pickle.load(f)
+    # f.close()
+    # img_proc.set_classify_target_list(
+    #     clf_fore.predict(
+    #         img_proc.get_classify_vec_list()
+    #     )
+    # )
+    # img_proc.image = cv2.bilateralFilter(img, 5, 50, 50)
+    # img_proc.compute_foreground_mask()
+    # img_proc.compute_foreground_image()
+    # img_proc.compute_sift_list()
 
 
 if __name__ == '__main__':

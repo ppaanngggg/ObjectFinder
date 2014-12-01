@@ -2,7 +2,6 @@ from object_process import ObjectProcess
 from k_means_multi_layer import *
 import threading
 from path_process import PathProcess
-import train
 
 
 def build_k_means_color_hist():

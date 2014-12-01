@@ -2,7 +2,6 @@ from image_process import ImageProcess
 import cv2
 import copy
 from pymongo import MongoClient
-import train
 import threading
 import numpy as np
 from k_means_multi_layer import *
