@@ -177,7 +177,7 @@ class ObjectFinder(QtGui.QWidget):
         image_view = ImageView(
             self, 'result',
             self.find_result_img_list,
-            2
+            3
         )
         image_view.show()
 
@@ -195,7 +195,7 @@ class ObjectFinder(QtGui.QWidget):
         self.bpnn.compute(vec)
         output = self.bpnn.output()
         print output
-        kind_table = ['cloth', 'cup', 'shore']
+        kind_table = ['cloth', 'cup', 'shoe']
         k_max = output[0]
         index_max = 0
         for index in range(1, len(output)):
@@ -218,7 +218,7 @@ class ObjectFinder(QtGui.QWidget):
                 {'color': 0.6, 'best_color': 0.1, 'sift': 0.5, 'best_sift': 0.3, 'hog': 0.7, 'best_hog': 0.2},
             'cup':
                 {'color': 0.2, 'best_color': 0, 'sift': 0.5, 'best_sift': 0, 'hog': 1, 'best_hog': 0},
-            'shore':
+            'shoe':
                 {'color': 0.8, 'best_color': 0.2, 'sift': 0.2, 'best_sift': 0, 'hog': 1.1, 'best_hog': 0.5}
         }
         for t in ['color', 'best_color','sift','best_sift','hog','best_hog']:
@@ -237,8 +237,8 @@ class ObjectFinder(QtGui.QWidget):
         sorted_name = sorted(name_dict.items(), key=operator.itemgetter(1), reverse=True)
         print sorted_name
         img_list = []
-        if len(sorted_name) > 4:
-            for i in range(4):
+        if len(sorted_name) > 6:
+            for i in range(6):
                 img = cv2.imread(
                     'train_pic/' + str(self.kind) + '/' + str(sorted_name[i][0]) + '.jpg'
                 )

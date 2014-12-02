@@ -18,7 +18,7 @@ def store_sample():
     db = client.object_finder
     coll = db.train_bpnn
 
-    path_proc = PathProcess('train_pic_arg')
+    path_proc = PathProcess('train_pic_bpnn')
     for kind in path_proc.get_kind_list():
         for path in path_proc.get_file_path_list(kind):
             print path
@@ -48,7 +48,7 @@ def load_sample():
 def to_vec(one):
     vec = []
     for i in ('color', 'best_color', 'sift', 'best_sift', 'hog', 'best_hog'):
-        for j in ('cloth', 'cup', 'shore'):
+        for j in ('cloth', 'cup', 'shoe'):
             try:
                 vec.append(sum(one[i][j].values()))
             except:
@@ -67,7 +67,7 @@ def train_bpnn():
         vec=to_vec(one)
         vec_list.append(vec)
         target = []
-        for i in ('cloth', 'cup', 'shore'):
+        for i in ('cloth', 'cup', 'shoe'):
             if one['kind'] == i:
                 target.append(1)
             else:
@@ -88,6 +88,32 @@ def train_bpnn():
 
 if __name__ == '__main__':
     # store_sample()
+
+    # import pickle
+    # f = open('cache/clf_fore', 'r')
+    # clf_fore = pickle.load(f)
+    # f.close()
+    # f = open('cache/clf_shape', 'r')
+    # clf_shape = pickle.load(f)
+    # f.close()
+    #
+    # client = MongoClient()
+    # db = client.object_finder
+    # coll = db.train_bpnn
+    #
+    # path='train_pic_bpnn/cup/21.jpg'
+    # print path
+    # obj_proc = ObjectProcess(path, clf_fore, clf_shape)
+    # coll.insert({
+    #     'kind': obj_proc.kind,
+    #     'name': obj_proc.name,
+    #     'color': obj_proc.get_fit_color_dict(),
+    #     'best_color': obj_proc.get_best_fit_color_dict(),
+    #     'sift': obj_proc.get_fit_sift_dict(),
+    #     'best_sift': obj_proc.get_best_fit_sift_dict(),
+    #     'hog': obj_proc.get_fit_hog_dict(),
+    #     'best_hog': obj_proc.get_best_fit_hog_dict()
+    # })
 
     bpnn=train_bpnn()
     f = open('cache/bpnn', 'w')

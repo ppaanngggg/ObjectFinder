@@ -333,7 +333,7 @@ def test():
     img_proc = ImageProcess(
         cv2.medianBlur(img, 5), 70
     )
-    img_proc.label_classify_target_list(True)
+    # img_proc.label_classify_target_list(True)
     # import pickle
     #
     # f = open('cache/clf_fore', 'r')
